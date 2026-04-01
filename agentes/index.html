@@ -6,6 +6,11 @@
 <title>Diagnóstico IA — AgentBase × Web3 Collective</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+  // Inicializa EmailJS con tu Public Key
+  (function(){if(typeof emailjs!=='undefined')emailjs.init({publicKey:'TU_PUBLIC_KEY'});})();
+</script>
 <style>
 :root{
   --p:#8B5CF6;--pd:#7C3AED;--pl:#A78BFA;
@@ -88,6 +93,31 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:#f1f5f9;min-heigh
 .bback{padding:11px 20px;background:transparent;color:var(--gray);border:1px solid var(--border);border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:.2s}
 .bback:hover{border-color:var(--pborder);color:var(--p)}
 @media(max-width:440px){.bnext,.bback{width:100%;text-align:center}.nav{flex-direction:column-reverse}}
+
+/* CALENDARIO */
+.cal-wrap{margin-top:28px}
+.cal-title{font-size:18px;font-weight:800;margin-bottom:4px}
+.cal-sub{font-size:13px;color:var(--gray);margin-bottom:20px}
+.cal-months{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.cal-month-lbl{font-size:14px;font-weight:700}
+.cal-nav{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--gray2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:.2s}
+.cal-nav:hover{border-color:var(--pborder);color:var(--p)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:20px}
+.cal-dow{font-size:10px;font-weight:700;color:var(--gray);text-align:center;padding:4px 0;text-transform:uppercase}
+.cal-day{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;cursor:default;color:var(--gray);transition:.2s}
+.cal-day.avail{background:var(--bg2);border:1px solid var(--border);color:var(--gray2);cursor:pointer}
+.cal-day.avail:hover{border-color:var(--p);color:var(--p);background:var(--pdim)}
+.cal-day.sel{background:var(--p);border-color:var(--p);color:#fff;box-shadow:0 0 12px var(--pglow)}
+.cal-day.past,.cal-day.blocked{opacity:.3;cursor:not-allowed}
+.slots-title{font-size:12px;font-weight:700;color:var(--p);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px}
+.slots-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-bottom:20px}
+.slot{padding:9px 6px;border-radius:9px;border:1.5px solid var(--border);background:var(--bg2);color:var(--gray2);font-size:12px;font-weight:700;text-align:center;cursor:pointer;transition:.2s}
+.slot:hover{border-color:var(--p);color:var(--p)}
+.slot.sel{background:var(--p);border-color:var(--p);color:#fff}
+.confirm-card{background:var(--bg2);border:1px solid var(--pborder);border-radius:14px;padding:18px;margin-bottom:16px}
+.confirm-row{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.confirm-row:last-child{border:none}
+.confirm-icon{font-size:16px;flex-shrink:0}
 
 /* RESULTADO */
 .dxh{background:linear-gradient(135deg,var(--pdim),rgba(139,92,246,.02));border:1px solid var(--pborder);border-radius:20px;padding:28px 24px;text-align:center;margin-top:28px;margin-bottom:18px;position:relative;overflow:hidden}
@@ -356,8 +386,61 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:#f1f5f9;min-heigh
 <!-- PASO 5: RESULTADO -->
 <div class="sec" id="s5"><div id="dx"></div></div>
 
+<!-- PASO 6: CALENDARIO -->
+<div class="sec" id="s6">
+  <div class="cal-wrap">
+    <div class="cal-title">Agenda tu demo personalizada</div>
+    <div class="cal-sub">Selecciona el día y horario que mejor te acomode. Lun–Vie, 10am–6pm.</div>
+    <div class="cal-months">
+      <button class="cal-nav" onclick="calPrev()">‹</button>
+      <div class="cal-month-lbl" id="calLabel"></div>
+      <button class="cal-nav" onclick="calNext()">›</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div id="slotsWrap" style="display:none">
+      <div class="slots-title" id="slotsTitle"></div>
+      <div class="slots-grid" id="slotsGrid"></div>
+    </div>
+    <div id="confirmWrap" style="display:none">
+      <div class="confirm-card">
+        <div class="confirm-row"><div class="confirm-icon">📅</div><div id="cfDate"></div></div>
+        <div class="confirm-row"><div class="confirm-icon">🕐</div><div id="cfTime"></div></div>
+        <div class="confirm-row"><div class="confirm-icon">🏢</div><div id="cfEmp"></div></div>
+        <div class="confirm-row"><div class="confirm-icon">👤</div><div id="cfName"></div></div>
+        <div class="confirm-row"><div class="confirm-icon">✉️</div><div id="cfEmail"></div></div>
+      </div>
+      <div class="nav" style="border:none;padding-top:0">
+        <button class="bback" onclick="clearSlot()">← Cambiar</button>
+        <button class="bnext" id="bConfirm" onclick="confirmBooking()">Confirmar demo →</button>
+      </div>
+    </div>
+  </div>
+  <div class="nav" style="margin-top:8px">
+    <button class="bback" onclick="goTo(5)">← Ver diagnóstico</button>
+  </div>
+</div>
+
+<!-- PASO 7: CONFIRMACIÓN -->
+<div class="sec" id="s7">
+  <div style="text-align:center;padding:48px 20px">
+    <div style="font-size:52px;margin-bottom:16px">🎉</div>
+    <div style="font-size:22px;font-weight:900;margin-bottom:8px">¡Demo confirmada!</div>
+    <div style="font-size:14px;color:var(--gray2);max-width:340px;margin:0 auto 24px;line-height:1.6" id="confMsg"></div>
+    <a class="bwa" href="https://agentbase.mx" target="_blank" style="max-width:320px;margin:0 auto 12px;display:flex">
+      🔗 Conocer más sobre AgentBase
+    </a>
+    <button class="breset" onclick="location.reload()">Nuevo diagnóstico</button>
+  </div>
+</div>
+
 </div>
 <script>
+// ── CONFIG (reemplazar con tus credenciales) ──────────────────────────
+const EMAILJS_SERVICE  = 'TU_SERVICE_ID';   // emailjs.com → Email Services
+const EMAILJS_TEMPLATE = 'TU_TEMPLATE_ID';  // emailjs.com → Email Templates
+const EMAILJS_KEY      = 'TU_PUBLIC_KEY';   // emailjs.com → Account → Public Key
+const GAS_URL          = 'TU_GAS_URL';      // Google Apps Script URL (ver instrucciones)
+// ─────────────────────────────────────────────────────────────────────
 const D={q1:'',q2:'',q3:'',q4:'',q5:'',q6:[],q7:[],q8:'',q9:'',q10:'',q11:'',q12:''};
 let nombre='',empresa='',email='',wa='';
 
@@ -385,12 +468,15 @@ function goTo(n){
   if(n>=2){nombre=document.getElementById('fn').value.trim();empresa=document.getElementById('fe').value.trim();email=document.getElementById('fm').value.trim();wa=document.getElementById('fw').value.trim();}
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
   document.getElementById('s'+n).classList.add('active');
-  document.getElementById('pf').style.width=[20,40,60,80,100][n-1]+'%';
+  const pcts=[20,40,60,80,100,100,100];
+  document.getElementById('pf').style.width=pcts[n-1]+'%';
   for(let i=1;i<=5;i++){
     const st=document.getElementById('st'+i),sl=document.getElementById('sl'+i);
-    st.className='st'+(i<n?' done':i===n?' active':'');
-    if(sl)sl.className='stline'+(i<n?' done':'');
+    const eff=Math.min(n,5);
+    st.className='st'+(i<eff?' done':i===eff?' active':'');
+    if(sl)sl.className='stline'+(i<eff?' done':'');
   }
+  if(n===6) calInit();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function score(){
@@ -457,16 +543,148 @@ function genDx(){
       <div class="dxal">${ag.map(a=>`<div class="dxa"><div class="dxai">${a.i}</div><div><div class="dxan">${a.n}</div><div class="dxad">${a.d}</div><span class="dxroi">${a.roi}</span></div></div>`).join('')}</div>
     </div>
     <div class="dxcta">
-      <a class="bwa" href="https://wa.me/524442522739?text=${msg}" target="_blank">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-        Agendar demo con Fernando
-      </a>
+      <button class="bnext" style="width:100%;justify-content:center;display:flex;gap:8px;align-items:center" onclick="goTo(6)">
+        📅 Agendar mi demo
+      </button>
+      <a class="breset" href="https://agentbase.mx" target="_blank" style="text-align:center;text-decoration:none;display:block;padding:12px">🔗 Conocer más sobre AgentBase →</a>
       <button class="breset" onclick="location.reload()">Hacer nuevo diagnóstico</button>
     </div>
     <div class="dxnote">Información confidencial · Usada solo para preparar tu demo personalizada<br>AgentBase × Web3 Collective</div>`;
   goTo(5);
+  sendDiagnosisEmail(sc,l,ag);
 }
 document.addEventListener('input',chk);
+
+// ── CALENDARIO ──────────────────────────────────────────────────────
+const DOWS=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const SLOTS=['10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30'];
+let calDate=new Date(), selDay=null, selSlot=null;
+
+function calInit(){
+  const now=new Date();
+  calDate=new Date(now.getFullYear(),now.getMonth(),1);
+  renderCal();
+}
+function calPrev(){
+  calDate=new Date(calDate.getFullYear(),calDate.getMonth()-1,1);
+  renderCal();
+}
+function calNext(){
+  calDate=new Date(calDate.getFullYear(),calDate.getMonth()+1,1);
+  renderCal();
+}
+function renderCal(){
+  document.getElementById('calLabel').textContent=MONTHS[calDate.getMonth()]+' '+calDate.getFullYear();
+  const g=document.getElementById('calGrid');
+  const now=new Date(); now.setHours(0,0,0,0);
+  const minDate=new Date(now); minDate.setDate(minDate.getDate()+2);
+  const yr=calDate.getFullYear(),mo=calDate.getMonth();
+  const first=new Date(yr,mo,1).getDay();
+  const days=new Date(yr,mo+1,0).getDate();
+  let html='';
+  DOWS.forEach(d=>{html+=`<div class="cal-dow">${d}</div>`;});
+  for(let i=0;i<first;i++) html+=`<div class="cal-day"></div>`;
+  for(let d=1;d<=days;d++){
+    const dt=new Date(yr,mo,d);
+    const dow=dt.getDay();
+    const isWknd=dow===0||dow===6;
+    const isPast=dt<minDate;
+    const isSel=selDay&&dt.toDateString()===selDay.toDateString();
+    let cls='cal-day';
+    if(isWknd||isPast) cls+=' past';
+    else if(isSel) cls+=' sel avail';
+    else cls+=' avail';
+    html+=`<div class="${cls}" onclick="pickDay(${yr},${mo},${d})">${d}</div>`;
+  }
+  g.innerHTML=html;
+}
+function pickDay(y,m,d){
+  const dt=new Date(y,m,d);
+  const now=new Date(); now.setHours(0,0,0,0);
+  const minDate=new Date(now); minDate.setDate(minDate.getDate()+2);
+  if(dt<minDate||dt.getDay()===0||dt.getDay()===6) return;
+  selDay=dt; selSlot=null;
+  renderCal();
+  document.getElementById('slotsTitle').textContent='Horarios disponibles — '+DOWS[dt.getDay()]+' '+dt.getDate()+' de '+MONTHS[dt.getMonth()];
+  const sg=document.getElementById('slotsGrid');
+  sg.innerHTML=SLOTS.map(s=>`<div class="slot" onclick="pickSlot('${s}',this)">${s}</div>`).join('');
+  document.getElementById('slotsWrap').style.display='block';
+  document.getElementById('confirmWrap').style.display='none';
+}
+function pickSlot(s,el){
+  document.querySelectorAll('.slot').forEach(x=>x.classList.remove('sel'));
+  el.classList.add('sel'); selSlot=s;
+  const d=selDay;
+  document.getElementById('cfDate').textContent=DOWS[d.getDay()]+', '+d.getDate()+' de '+MONTHS[d.getMonth()]+' '+d.getFullYear();
+  document.getElementById('cfTime').textContent=s+' hrs (Hora de México)';
+  document.getElementById('cfEmp').textContent=empresa||document.getElementById('fe').value.trim();
+  document.getElementById('cfName').textContent=nombre||document.getElementById('fn').value.trim();
+  document.getElementById('cfEmail').textContent=email||document.getElementById('fm').value.trim();
+  document.getElementById('confirmWrap').style.display='block';
+}
+function clearSlot(){
+  selSlot=null;
+  document.querySelectorAll('.slot').forEach(x=>x.classList.remove('sel'));
+  document.getElementById('confirmWrap').style.display='none';
+}
+
+async function confirmBooking(){
+  const btn=document.getElementById('bConfirm');
+  btn.disabled=true; btn.textContent='Confirmando...';
+  const n=nombre||document.getElementById('fn').value.trim();
+  const e=empresa||document.getElementById('fe').value.trim();
+  const m=email||document.getElementById('fm').value.trim();
+  const w=wa||document.getElementById('fw').value.trim();
+  const dateStr=DOWS[selDay.getDay()]+', '+selDay.getDate()+' de '+MONTHS[selDay.getMonth()]+' '+selDay.getFullYear();
+  const isoDate=selDay.toISOString().split('T')[0];
+
+  // 1. Google Apps Script → Google Calendar + email confirmación
+  try{
+    await fetch(GAS_URL,{method:'POST',mode:'no-cors',body:JSON.stringify({
+      nombre:n,empresa:e,email:m,whatsapp:w,
+      fecha:dateStr,hora:selSlot,isoDate,
+      diagnostico:window._dxSummary||''
+    })});
+  }catch(err){console.warn('GAS error:',err);}
+
+  // 2. EmailJS → correo al prospecto
+  try{
+    if(typeof emailjs!=='undefined'&&EMAILJS_SERVICE!=='TU_SERVICE_ID'){
+      await emailjs.send(EMAILJS_SERVICE,EMAILJS_TEMPLATE,{
+        to_name:n, to_email:m, empresa:e,
+        fecha:dateStr, hora:selSlot,
+        diagnostico:window._dxSummary||''
+      });
+    }
+  }catch(err){console.warn('EmailJS error:',err);}
+
+  // 3. WhatsApp a Fernando (notificación inmediata)
+  const ferMsg=encodeURIComponent('🔔 Nueva demo agendada:\n\n👤 '+n+'\n🏢 '+e+'\n📧 '+m+(w?'\n📱 '+w:'')+'\n📅 '+dateStr+'\n🕐 '+selSlot+' hrs\n\nDiagnóstico: '+(window._dxSummary||''));
+  window.open('https://wa.me/524442522739?text='+ferMsg,'_blank');
+
+  document.getElementById('confMsg').innerHTML='Te enviamos la confirmación a <strong>'+m+'</strong>.<br><br>📅 '+dateStr+' · '+selSlot+' hrs<br><br>Fernando se pondrá en contacto contigo antes de la demo.';
+  goTo(7);
+}
+
+function sendDiagnosisEmail(sc,l,ag){
+  const n=nombre||document.getElementById('fn').value.trim();
+  const m=email||document.getElementById('fm').value.trim();
+  const e=empresa||document.getElementById('fe').value.trim();
+  window._dxSummary='Nivel: '+l+' ('+sc+'/100) | Procesos: '+D.q7.join(', ')+' | Objetivo: '+D.q10+' | Inversión: '+D.q12;
+  // EmailJS
+  try{
+    if(typeof emailjs!=='undefined'&&EMAILJS_SERVICE!=='TU_SERVICE_ID'){
+      emailjs.send(EMAILJS_SERVICE,EMAILJS_TEMPLATE,{
+        to_name:n,to_email:m,empresa:e,
+        nivel:l,score:sc,
+        procesos:D.q7.join(', ')||'N/A',
+        objetivo:D.q10,inversion:D.q12,
+        agentes:ag.map(a=>a.n).join(', ')
+      });
+    }
+  }catch(err){console.warn('EmailJS:',err);}
+}
 </script>
 </body>
 </html>
