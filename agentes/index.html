@@ -1,461 +1,472 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Diagnóstico IA — Web3 Collective</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
-  <style>
-    :root{
-      --accent:#00ff6d;--accent-dark:#00cc57;
-      --accent-dim:rgba(0,255,109,.07);--accent-border:rgba(0,255,109,.18);
-      --dark:#0b0f1a;--dark-2:#0f1420;--dark-3:#141929;--dark-4:#1a2035;
-      --gray:#8C8C8C;--gray-light:#BFBFBF;--border:#1e2640;
-      --gold:#fbbf24;--gold-dim:rgba(251,191,36,.07);
-    }
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Inter',sans-serif;background:var(--dark);color:#f0f0f5;min-height:100vh}
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Diagnóstico IA — AgentBase × Web3 Collective</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --p:#8B5CF6;--pd:#7C3AED;--pl:#A78BFA;
+  --pdim:rgba(139,92,246,.09);--pborder:rgba(139,92,246,.22);--pglow:rgba(139,92,246,.35);
+  --bg:#080c18;--bg2:#0d1122;--bg3:#121728;--bg4:#181e32;
+  --gray:#94a3b8;--gray2:#cbd5e1;--border:#1e2640;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:#f1f5f9;min-height:100vh}
 
-    /* ── HERO ── */
-    .hero{text-align:center;padding:52px 20px 36px;background:radial-gradient(ellipse at 50% -10%,rgba(0,255,109,.06) 0%,transparent 60%);border-bottom:1px solid var(--border)}
-    .w3-logo{display:inline-flex;align-items:center;gap:10px;margin-bottom:18px}
-    .w3-dot{width:9px;height:9px;background:var(--accent);border-radius:50%;box-shadow:0 0 10px var(--accent);animation:pulse 2s infinite}
-    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-    .w3-name{font-size:14px;font-weight:800;color:var(--accent);letter-spacing:.5px}
-    .hero h1{font-size:clamp(26px,5vw,42px);font-weight:900;line-height:1.1;margin-bottom:12px;max-width:620px;margin-left:auto;margin-right:auto}
-    .hero h1 span{color:var(--accent)}
-    .hero p{font-size:15px;color:var(--gray-light);max-width:500px;margin:0 auto 24px;line-height:1.6}
-    .hero-stats{display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap}
-    .h-stat{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--gray)}
-    .h-stat-dot{width:6px;height:6px;background:var(--accent);border-radius:50%}
+/* HERO */
+.hero{text-align:center;padding:52px 20px 36px;background:radial-gradient(ellipse at 50% -10%,rgba(139,92,246,.13) 0%,transparent 65%);border-bottom:1px solid var(--border)}
+.badge{display:inline-flex;align-items:center;gap:8px;background:var(--pdim);border:1px solid var(--pborder);border-radius:20px;padding:6px 16px;margin-bottom:18px}
+.bdot{width:7px;height:7px;background:var(--p);border-radius:50%;box-shadow:0 0 8px var(--pglow);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.badge span{font-size:11px;font-weight:700;color:var(--p);letter-spacing:.5px;text-transform:uppercase}
+.hero h1{font-size:clamp(24px,5vw,42px);font-weight:900;line-height:1.1;margin-bottom:12px;max-width:600px;margin-left:auto;margin-right:auto}
+.hero h1 em{font-style:normal;color:var(--pl)}
+.hero p{font-size:14px;color:var(--gray2);max-width:440px;margin:0 auto 20px;line-height:1.6}
+.pills{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.pill{display:flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--border);color:var(--gray);font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px}
+.pdot{width:5px;height:5px;background:var(--p);border-radius:50%}
 
-    /* ── PROGRESS ── */
-    .prog-wrap{max-width:640px;margin:28px auto 0;padding:0 16px}
-    .prog-steps{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:6px}
-    .ps{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--gray)}
-    .ps-n{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;transition:.3s;flex-shrink:0}
-    .ps.active .ps-n{background:var(--accent);border-color:var(--accent);color:var(--dark)}
-    .ps.active{color:#fff}
-    .ps.done .ps-n{background:var(--accent-dark);border-color:var(--accent-dark);color:var(--dark)}
-    .ps.done{color:var(--gray-light)}
-    .ps-line{width:32px;height:1.5px;background:var(--border);margin:0 2px;transition:.3s;flex-shrink:0}
-    .ps-line.done{background:var(--accent-dark)}
-    .prog-bar-bg{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:10px}
-    .prog-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent-dark),var(--accent));border-radius:2px;transition:width .5s ease}
+/* PROGRESS */
+.prog-wrap{max-width:620px;margin:0 auto;padding:20px 16px 0}
+.steps{display:flex;align-items:center;justify-content:center;margin-bottom:8px;gap:0}
+.st{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--gray);white-space:nowrap}
+.st-n{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;transition:.3s;flex-shrink:0}
+.st.active .st-n{background:var(--p);border-color:var(--p);color:#fff;box-shadow:0 0 12px var(--pglow)}
+.st.active{color:#fff}
+.st.done .st-n{background:var(--pd);border-color:var(--pd);color:#fff}
+.st.done{color:var(--gray2)}
+.stline{width:24px;height:1.5px;background:var(--border);flex-shrink:0;transition:.3s}
+.stline.done{background:var(--pd)}
+.pbar{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.pfill{height:100%;background:linear-gradient(90deg,var(--pd),var(--pl));border-radius:2px;transition:width .5s}
 
-    /* ── WRAP ── */
-    .wrap{max-width:680px;margin:0 auto;padding:0 16px 80px}
+/* LAYOUT */
+.wrap{max-width:660px;margin:0 auto;padding:0 16px 80px}
+.sec{display:none;animation:fi .3s ease}
+.sec.active{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
-    /* ── SECTION ── */
-    .sec{display:none;animation:fi .3s ease}
-    .sec.active{display:block}
-    @keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-    .sec-kicker{font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-top:32px;margin-bottom:5px}
-    .sec-title{font-size:20px;font-weight:800;margin-bottom:5px}
-    .sec-sub{font-size:13px;color:var(--gray-light);margin-bottom:22px;line-height:1.5}
+/* CONTACT */
+.cblock{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:20px;margin:28px 0 18px}
+.clbl{font-size:10px;font-weight:700;color:var(--p);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px}
+.crow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:460px){.crow{grid-template-columns:1fr}}
+.cf{display:flex;flex-direction:column;gap:5px}
+.cflbl{font-size:10px;font-weight:700;color:var(--gray2);text-transform:uppercase;letter-spacing:.4px}
+.inp{background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;font-size:13px;color:#f1f5f9;font-family:'Inter',sans-serif;outline:none;transition:.2s;width:100%}
+.inp:focus{border-color:var(--p)}
+.inp::placeholder{color:var(--gray)}
 
-    /* ── OPTION CARDS ── */
-    .opt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:9px;margin-bottom:24px}
-    .opt-grid.two{grid-template-columns:1fr 1fr}
-    @media(max-width:460px){.opt-grid.two{grid-template-columns:1fr}}
-    .opt{background:var(--dark-2);border:2px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;transition:.2s;display:flex;align-items:flex-start;gap:10px}
-    .opt:hover{border-color:var(--accent-border);background:var(--dark-3);transform:translateY(-1px)}
-    .opt.sel{border-color:var(--accent);background:var(--accent-dim)}
-    .opt-icon{font-size:20px;flex-shrink:0;margin-top:1px}
-    .opt-label{font-size:13px;font-weight:600;line-height:1.3}
-    .opt-sub{font-size:11px;color:var(--gray);margin-top:2px;line-height:1.3}
-    /* Multi-select check */
-    .opt .chk{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;transition:.2s;margin-top:1px}
-    .opt.sel .chk{background:var(--accent);border-color:var(--accent);color:var(--dark)}
+/* QUESTION */
+.qb{margin-top:22px}
+.qn{font-size:10px;font-weight:700;color:var(--p);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}
+.qt{font-size:16px;font-weight:700;margin-bottom:4px;line-height:1.3}
+.qs{font-size:12px;color:var(--gray);margin-bottom:14px;line-height:1.5}
 
-    /* ── INPUT ── */
-    .inp-field{margin-bottom:14px}
-    .inp-label{font-size:11px;font-weight:700;color:var(--gray-light);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;display:block}
-    .inp{width:100%;background:var(--dark-3);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:13px;color:#f0f0f5;font-family:'Inter',sans-serif;transition:.2s;outline:none}
-    .inp:focus{border-color:var(--accent);background:var(--dark-4)}
-    .inp::placeholder{color:var(--gray)}
-    .inp-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    @media(max-width:480px){.inp-row{grid-template-columns:1fr}}
+/* OPTIONS */
+.og{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:8px}
+.og2{grid-template-columns:1fr 1fr}
+@media(max-width:460px){.og,.og2{grid-template-columns:1fr 1fr}}
+@media(max-width:360px){.og,.og2{grid-template-columns:1fr}}
+.opt{background:var(--bg2);border:2px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;transition:.2s;display:flex;align-items:flex-start;gap:9px}
+.opt:hover{border-color:var(--pborder);background:var(--bg3);transform:translateY(-1px)}
+.opt.sel{border-color:var(--p);background:var(--pdim)}
+.oi{font-size:18px;flex-shrink:0;margin-top:1px}
+.ol{font-size:12px;font-weight:700;line-height:1.3}
+.os{font-size:10px;color:var(--gray);margin-top:2px;line-height:1.3}
+.chk{width:17px;height:17px;border-radius:5px;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:transparent;transition:.2s;margin-top:1px}
+.opt.sel .chk{background:var(--p);border-color:var(--p);color:#fff}
 
-    /* ── NAV ── */
-    .nav{display:flex;justify-content:space-between;align-items:center;margin-top:6px;padding-top:18px;border-top:1px solid var(--border);gap:10px;flex-wrap:wrap}
-    .btn-next{padding:13px 28px;background:var(--accent);color:var(--dark);border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;transition:.2s}
-    .btn-next:hover{background:var(--accent-dark);transform:translateY(-1px)}
-    .btn-next:disabled{background:#1e2640;color:#3a4a6b;cursor:not-allowed;transform:none}
-    .btn-back{padding:11px 20px;background:transparent;color:var(--gray);border:1px solid var(--border);border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:.2s}
-    .btn-back:hover{border-color:var(--accent-border);color:var(--accent)}
-    @media(max-width:440px){.btn-next,.btn-back{width:100%;text-align:center}.nav{flex-direction:column-reverse}}
+/* NAV */
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:18px;border-top:1px solid var(--border);gap:10px;flex-wrap:wrap}
+.bnext{padding:13px 28px;background:var(--p);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;transition:.2s;box-shadow:0 4px 16px var(--pglow)}
+.bnext:hover{background:var(--pd);transform:translateY(-1px)}
+.bnext:disabled{background:var(--bg4);color:#3a4a6b;cursor:not-allowed;transform:none;box-shadow:none}
+.bback{padding:11px 20px;background:transparent;color:var(--gray);border:1px solid var(--border);border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:.2s}
+.bback:hover{border-color:var(--pborder);color:var(--p)}
+@media(max-width:440px){.bnext,.bback{width:100%;text-align:center}.nav{flex-direction:column-reverse}}
 
-    /* ── DIAGNÓSTICO ── */
-    .dx-wrap{margin-top:28px}
-    .dx-header{text-align:center;padding:28px 20px;background:var(--accent-dim);border:1px solid var(--accent-border);border-radius:20px;margin-bottom:20px}
-    .dx-tag{display:inline-block;background:var(--accent);color:var(--dark);font-size:11px;font-weight:800;padding:4px 14px;border-radius:20px;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px}
-    .dx-company{font-size:18px;font-weight:800;margin-bottom:4px}
-    .dx-level-label{font-size:12px;color:var(--gray-light);margin-bottom:6px}
-    .dx-level{font-size:28px;font-weight:900;color:var(--accent)}
-    .dx-score-bar-bg{height:6px;background:var(--border);border-radius:4px;max-width:200px;margin:10px auto 0;overflow:hidden}
-    .dx-score-fill{height:100%;background:linear-gradient(90deg,var(--accent-dark),var(--accent));border-radius:4px}
-
-    .dx-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
-    @media(max-width:540px){.dx-grid{grid-template-columns:1fr}}
-    .dx-card{background:var(--dark-2);border:1px solid var(--border);border-radius:16px;padding:18px}
-    .dx-card-title{font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px}
-    .dx-item{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--gray-light)}
-    .dx-item:last-child{border:none}
-    .dx-item-dot{width:6px;height:6px;background:var(--accent);border-radius:50%;flex-shrink:0;margin-top:4px}
-    .dx-item-dot.warn{background:var(--gold)}
-
-    .dx-full{background:var(--dark-2);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:12px}
-    .dx-agents{display:flex;flex-direction:column;gap:10px;margin-top:2px}
-    .dx-agent{background:var(--dark-3);border:1px solid var(--accent-border);border-radius:12px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start}
-    .dx-agent-icon{font-size:22px;flex-shrink:0}
-    .dx-agent-name{font-size:13px;font-weight:700;margin-bottom:3px}
-    .dx-agent-desc{font-size:11px;color:var(--gray);line-height:1.4}
-    .dx-agent-roi{display:inline-block;margin-top:5px;font-size:10px;font-weight:700;color:var(--accent);background:var(--accent-dim);border:1px solid var(--accent-border);padding:2px 8px;border-radius:6px}
-
-    .dx-cta{display:flex;flex-direction:column;gap:10px;margin-top:18px}
-    .btn-demo{width:100%;padding:16px;background:var(--accent);color:var(--dark);border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;transition:.2s;display:flex;align-items:center;justify-content:center;gap:9px;text-decoration:none}
-    .btn-demo:hover{background:var(--accent-dark)}
-    .btn-restart{width:100%;padding:12px;background:transparent;color:var(--gray);border:1px solid var(--border);border-radius:12px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:.2s}
-    .btn-restart:hover{border-color:var(--accent-border);color:var(--accent)}
-    .dx-disclaimer{font-size:10px;color:var(--gray);text-align:center;margin-top:10px;line-height:1.5}
-  </style>
+/* RESULTADO */
+.dxh{background:linear-gradient(135deg,var(--pdim),rgba(139,92,246,.02));border:1px solid var(--pborder);border-radius:20px;padding:28px 24px;text-align:center;margin-top:28px;margin-bottom:18px;position:relative;overflow:hidden}
+.dxh::before{content:'';position:absolute;top:-40px;right:-40px;width:140px;height:140px;background:radial-gradient(circle,var(--pglow),transparent 70%);pointer-events:none}
+.dxtag{display:inline-block;background:var(--p);color:#fff;font-size:10px;font-weight:800;padding:4px 14px;border-radius:20px;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px}
+.dxco{font-size:20px;font-weight:800;margin-bottom:3px}
+.dxll{font-size:11px;color:var(--gray);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.dxlv{font-size:28px;font-weight:900;color:var(--pl)}
+.dxbb{height:6px;background:var(--border);border-radius:4px;max-width:220px;margin:10px auto;overflow:hidden}
+.dxbf{height:100%;background:linear-gradient(90deg,var(--pd),var(--pl));border-radius:4px}
+.dxst{font-size:11px;color:var(--gray)}
+.dxgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+@media(max-width:500px){.dxgrid{grid-template-columns:1fr}}
+.dxcard{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px}
+.dxct{font-size:10px;font-weight:700;color:var(--p);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px}
+.dxrow{display:flex;align-items:flex-start;gap:7px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--gray2);line-height:1.4}
+.dxrow:last-child{border:none}
+.dxdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px;background:var(--p)}
+.dxdot.w{background:#f59e0b}
+.dxdot.r{background:#ef4444}
+.dxab{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:14px}
+.dxal{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.dxa{background:var(--bg3);border:1px solid var(--pborder);border-radius:12px;padding:14px 15px;display:flex;gap:12px;align-items:flex-start}
+.dxai{font-size:22px;flex-shrink:0}
+.dxan{font-size:13px;font-weight:700;margin-bottom:3px}
+.dxad{font-size:11px;color:var(--gray);line-height:1.4}
+.dxroi{display:inline-block;margin-top:5px;font-size:10px;font-weight:700;color:var(--pl);background:var(--pdim);border:1px solid var(--pborder);padding:2px 8px;border-radius:6px}
+.dxcta{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.bwa{width:100%;padding:16px;background:var(--p);color:#fff;border:none;border-radius:14px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;transition:.2s;display:flex;align-items:center;justify-content:center;gap:9px;text-decoration:none;box-shadow:0 6px 20px var(--pglow)}
+.bwa:hover{background:var(--pd)}
+.breset{width:100%;padding:12px;background:transparent;color:var(--gray);border:1px solid var(--border);border-radius:12px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:.2s}
+.breset:hover{border-color:var(--pborder);color:var(--p)}
+.dxnote{font-size:10px;color:var(--gray);text-align:center;margin-top:10px;line-height:1.5}
+</style>
 </head>
 <body>
 
 <div class="hero">
-  <div class="w3-logo">
-    <div class="w3-dot"></div>
-    <div class="w3-name">WEB3 COLLECTIVE</div>
-  </div>
-  <h1>¿Cuánto valor deja sobre la mesa<br><span>tu negocio cada semana?</span></h1>
-  <p>Responde 4 preguntas y obtén un diagnóstico gratuito sobre qué procesos puedes automatizar con IA.</p>
-  <div class="hero-stats">
-    <div class="h-stat"><div class="h-stat-dot"></div>2 minutos</div>
-    <div class="h-stat"><div class="h-stat-dot"></div>100% gratuito</div>
-    <div class="h-stat"><div class="h-stat-dot"></div>Diagnóstico personalizado</div>
+  <div class="badge"><div class="bdot"></div><span>AgentBase × Web3 Collective</span></div>
+  <h1>Descubre en 2 minutos dónde la <em>IA puede transformar</em> tu negocio</h1>
+  <p>12 preguntas. Diagnóstico instantáneo. Agentes recomendados para tu caso específico.</p>
+  <div class="pills">
+    <div class="pill"><div class="pdot"></div>100% gratuito</div>
+    <div class="pill"><div class="pdot"></div>Sin tecnicismos</div>
+    <div class="pill"><div class="pdot"></div>Resultado personalizado</div>
   </div>
 </div>
 
 <div class="prog-wrap">
-  <div class="prog-steps">
-    <div class="ps active" id="ps1"><div class="ps-n">1</div><span>Negocio</span></div>
-    <div class="ps-line" id="pl1"></div>
-    <div class="ps" id="ps2"><div class="ps-n">2</div><span>Tiempo</span></div>
-    <div class="ps-line" id="pl2"></div>
-    <div class="ps" id="ps3"><div class="ps-n">3</div><span>Procesos</span></div>
-    <div class="ps-line" id="pl3"></div>
-    <div class="ps" id="ps4"><div class="ps-n">4</div><span>Visión</span></div>
-    <div class="ps-line" id="pl4"></div>
-    <div class="ps" id="ps5"><div class="ps-n">5</div><span>Resultado</span></div>
+  <div class="steps">
+    <div class="st active" id="st1"><div class="st-n">1</div><span>Negocio</span></div>
+    <div class="stline" id="sl1"></div>
+    <div class="st" id="st2"><div class="st-n">2</div><span>Operación</span></div>
+    <div class="stline" id="sl2"></div>
+    <div class="st" id="st3"><div class="st-n">3</div><span>Dolores</span></div>
+    <div class="stline" id="sl3"></div>
+    <div class="st" id="st4"><div class="st-n">4</div><span>Visión</span></div>
+    <div class="stline" id="sl4"></div>
+    <div class="st" id="st5"><div class="st-n">5</div><span>Resultado</span></div>
   </div>
-  <div class="prog-bar-bg"><div class="prog-bar-fill" id="progFill" style="width:20%"></div></div>
+  <div class="pbar"><div class="pfill" id="pf" style="width:20%"></div></div>
 </div>
 
 <div class="wrap">
 
-  <!-- PASO 1: TU NEGOCIO -->
-  <div class="sec active" id="sec1">
-    <div class="sec-kicker">Paso 1 de 4</div>
-    <div class="sec-title">Cuéntanos sobre tu negocio</div>
-    <div class="sec-sub">Sin formularios largos — solo lo esencial para entender tu operación.</div>
-
-    <div class="inp-row">
-      <div class="inp-field">
-        <label class="inp-label">Nombre de la empresa *</label>
-        <input class="inp" id="empresa" type="text" placeholder="Ej. Grupo Fernández"/>
-      </div>
-      <div class="inp-field">
-        <label class="inp-label">Tu nombre *</label>
-        <input class="inp" id="nombre" type="text" placeholder="Ej. Carlos Ramírez"/>
-      </div>
-    </div>
-    <div class="inp-row">
-      <div class="inp-field">
-        <label class="inp-label">Correo electrónico *</label>
-        <input class="inp" id="email" type="email" placeholder="carlos@empresa.com"/>
-      </div>
-      <div class="inp-field">
-        <label class="inp-label">WhatsApp</label>
-        <input class="inp" id="whatsapp" type="tel" placeholder="+52 444 000 0000"/>
-      </div>
-    </div>
-
-    <div class="sec-kicker" style="margin-top:10px">¿Cuántas personas trabajan en tu empresa?</div>
-    <div class="opt-grid" id="tamanoGrid">
-      <div class="opt" onclick="pick('tamano',this,'Solo yo')"><div class="opt-icon">🙋</div><div><div class="opt-label">Solo yo</div><div class="opt-sub">Emprendedor individual</div></div></div>
-      <div class="opt" onclick="pick('tamano',this,'2-10')"><div class="opt-icon">👥</div><div><div class="opt-label">2 – 10</div><div class="opt-sub">Microempresa</div></div></div>
-      <div class="opt" onclick="pick('tamano',this,'11-50')"><div class="opt-icon">🏪</div><div><div class="opt-label">11 – 50</div><div class="opt-sub">Pequeña empresa</div></div></div>
-      <div class="opt" onclick="pick('tamano',this,'51-200')"><div class="opt-icon">🏢</div><div><div class="opt-label">51 – 200</div><div class="opt-sub">Mediana empresa</div></div></div>
-      <div class="opt" onclick="pick('tamano',this,'+200')"><div class="opt-icon">🏭</div><div><div class="opt-label">+200</div><div class="opt-sub">Grande empresa</div></div></div>
-    </div>
-
-    <div class="sec-kicker">¿En qué industria opera?</div>
-    <div class="opt-grid" id="industriaGrid">
-      <div class="opt" onclick="pick('industria',this,'Comercio / Retail')"><div class="opt-icon">🛍️</div><div class="opt-label">Comercio / Retail</div></div>
-      <div class="opt" onclick="pick('industria',this,'Servicios profesionales')"><div class="opt-icon">💼</div><div class="opt-label">Servicios profesionales</div></div>
-      <div class="opt" onclick="pick('industria',this,'Restaurantes / Alimentos')"><div class="opt-icon">🍽️</div><div class="opt-label">Restaurantes / Alimentos</div></div>
-      <div class="opt" onclick="pick('industria',this,'Salud / Clínicas')"><div class="opt-icon">🏥</div><div class="opt-label">Salud / Clínicas</div></div>
-      <div class="opt" onclick="pick('industria',this,'Manufactura / Industrial')"><div class="opt-icon">⚙️</div><div class="opt-label">Manufactura</div></div>
-      <div class="opt" onclick="pick('industria',this,'Tecnología / SaaS')"><div class="opt-icon">💻</div><div class="opt-label">Tecnología / SaaS</div></div>
-      <div class="opt" onclick="pick('industria',this,'Inmobiliaria / Construcción')"><div class="opt-icon">🏗️</div><div class="opt-label">Inmobiliaria / Construcción</div></div>
-      <div class="opt" onclick="pick('industria',this,'Educación')"><div class="opt-icon">🎓</div><div class="opt-label">Educación</div></div>
-      <div class="opt" onclick="pick('industria',this,'Finanzas / Contabilidad')"><div class="opt-icon">📊</div><div class="opt-label">Finanzas / Contabilidad</div></div>
-      <div class="opt" onclick="pick('industria',this,'Otro')"><div class="opt-icon">🔷</div><div class="opt-label">Otro</div></div>
-    </div>
-
-    <div class="nav"><span></span><button class="btn-next" id="btn1" disabled onclick="goTo(2)">Siguiente →</button></div>
-  </div>
-
-  <!-- PASO 2: DÓNDE SE VA EL TIEMPO -->
-  <div class="sec" id="sec2">
-    <div class="sec-kicker">Paso 2 de 4</div>
-    <div class="sec-title">¿Dónde se va el tiempo de tu equipo?</div>
-    <div class="sec-sub">El tiempo que se pierde en tareas repetitivas es exactamente donde los agentes IA generan más valor.</div>
-
-    <div class="sec-kicker">¿Cuántas horas semanales dedican a tareas repetitivas?</div>
-    <div class="opt-grid two" id="horasGrid">
-      <div class="opt" onclick="pick('horas',this,'Menos de 5h')"><div class="opt-icon">⏱️</div><div><div class="opt-label">Menos de 5h</div><div class="opt-sub">Muy eficientes ya</div></div></div>
-      <div class="opt" onclick="pick('horas',this,'5-15h')"><div class="opt-icon">⏰</div><div><div class="opt-label">5 – 15 horas</div><div class="opt-sub">Margen de mejora claro</div></div></div>
-      <div class="opt" onclick="pick('horas',this,'15-30h')"><div class="opt-icon">📋</div><div><div class="opt-label">15 – 30 horas</div><div class="opt-sub">Alto potencial de automatización</div></div></div>
-      <div class="opt" onclick="pick('horas',this,'+30h')"><div class="opt-icon">🔥</div><div><div class="opt-label">Más de 30 horas</div><div class="opt-sub">Urgente — costo operativo alto</div></div></div>
-    </div>
-
-    <div class="sec-kicker">¿Qué tan rápido responden a un cliente nuevo?</div>
-    <div class="opt-grid two" id="respuestaGrid">
-      <div class="opt" onclick="pick('respuesta',this,'Minutos')"><div class="opt-icon">⚡</div><div><div class="opt-label">En minutos</div><div class="opt-sub">Respuesta inmediata</div></div></div>
-      <div class="opt" onclick="pick('respuesta',this,'Horas')"><div class="opt-icon">🕐</div><div><div class="opt-label">En horas</div><div class="opt-sub">Pierden prospectos calientes</div></div></div>
-      <div class="opt" onclick="pick('respuesta',this,'Al día siguiente')"><div class="opt-icon">📅</div><div><div class="opt-label">Al día siguiente</div><div class="opt-sub">Alto riesgo de perder ventas</div></div></div>
-      <div class="opt" onclick="pick('respuesta',this,'Cuando se puede')"><div class="opt-icon">😅</div><div><div class="opt-label">Cuando se puede</div><div class="opt-sub">Señal de desbordamiento</div></div></div>
-    </div>
-
-    <div class="nav">
-      <button class="btn-back" onclick="goTo(1)">← Atrás</button>
-      <button class="btn-next" id="btn2" disabled onclick="goTo(3)">Siguiente →</button>
+<!-- PASO 1 -->
+<div class="sec active" id="s1">
+  <div class="cblock">
+    <div class="clbl">Tus datos de contacto</div>
+    <div class="crow">
+      <div class="cf"><label class="cflbl">Nombre *</label><input class="inp" id="fn" placeholder="Tu nombre" oninput="chk(1)"/></div>
+      <div class="cf"><label class="cflbl">Empresa *</label><input class="inp" id="fe" placeholder="Nombre del negocio" oninput="chk(1)"/></div>
+      <div class="cf"><label class="cflbl">Correo *</label><input class="inp" id="fm" type="email" placeholder="correo@empresa.com" oninput="chk(1)"/></div>
+      <div class="cf"><label class="cflbl">WhatsApp</label><input class="inp" id="fw" type="tel" placeholder="+52 444 000 0000"/></div>
     </div>
   </div>
 
-  <!-- PASO 3: PROCESOS MANUALES -->
-  <div class="sec" id="sec3">
-    <div class="sec-kicker">Paso 3 de 4</div>
-    <div class="sec-title">¿Qué procesos siguen siendo manuales?</div>
-    <div class="sec-sub">Selecciona todos los que apliquen — cuantos más, mayor el potencial de automatización.</div>
-
-    <div class="opt-grid" id="procesosGrid">
-      <div class="opt multi" onclick="toggleMulti('procesos',this,'Atención al cliente')"><div class="chk"></div><div><div class="opt-label">💬 Atención al cliente</div><div class="opt-sub">WhatsApp, correo, llamadas</div></div></div>
-      <div class="opt multi" onclick="toggleMulti('procesos',this,'Seguimiento de ventas')"><div class="chk"></div><div><div class="opt-label">📈 Seguimiento de ventas</div><div class="opt-sub">CRM, cotizaciones, follow-up</div></div></div>
-      <div class="opt multi" onclick="toggleMulti('procesos',this,'Generación de reportes')"><div class="chk"></div><div><div class="opt-label">📊 Reportes y análisis</div><div class="opt-sub">KPIs, dashboards, Excel</div></div></div>
-      <div class="opt multi" onclick="toggleMulti('procesos',this,'Facturación y finanzas')"><div class="chk"></div><div><div class="opt-label">🧾 Facturación y finanzas</div><div class="opt-sub">Cobros, CFDI, conciliación</div></div></div>
-      <div class="opt multi" onclick="toggleMulti('procesos',this,'Coordinación de equipo')"><div class="chk"></div><div><div class="opt-label">👥 Coordinación de equipo</div><div class="opt-sub">Tareas, agendas, avisos</div></div></div>
-      <div class="opt multi" onclick="toggleMulti('procesos',this,'Captación de prospectos')"><div class="chk"></div><div><div class="opt-label">🎯 Captación de prospectos</div><div class="opt-sub">Leads, formularios, redes</div></div></div>
-      <div class="opt multi" onclick="toggleMulti('procesos',this,'Logística y operaciones')"><div class="chk"></div><div><div class="opt-label">🚚 Logística y operaciones</div><div class="opt-sub">Inventario, pedidos, entregas</div></div></div>
-      <div class="opt multi" onclick="toggleMulti('procesos',this,'Recursos humanos')"><div class="chk"></div><div><div class="opt-label">🤝 Recursos humanos</div><div class="opt-sub">Nómina, reclutamiento, IMSS</div></div></div>
-    </div>
-
-    <div class="nav">
-      <button class="btn-back" onclick="goTo(2)">← Atrás</button>
-      <button class="btn-next" id="btn3" disabled onclick="goTo(4)">Siguiente →</button>
+  <div class="qb">
+    <div class="qn">Pregunta 1 de 12</div>
+    <div class="qt">¿Cuántas personas trabajan en tu empresa?</div>
+    <div class="qs">Incluye empleados, socios y colaboradores frecuentes.</div>
+    <div class="og" id="g1">
+      <div class="opt" onclick="pick('q1',this,'Solo yo')"><div class="oi">🙋</div><div><div class="ol">Solo yo</div><div class="os">Emprendedor</div></div></div>
+      <div class="opt" onclick="pick('q1',this,'2-10')"><div class="oi">👥</div><div><div class="ol">2 – 10</div><div class="os">Microempresa</div></div></div>
+      <div class="opt" onclick="pick('q1',this,'11-50')"><div class="oi">🏪</div><div><div class="ol">11 – 50</div><div class="os">Pequeña empresa</div></div></div>
+      <div class="opt" onclick="pick('q1',this,'51-200')"><div class="oi">🏢</div><div><div class="ol">51 – 200</div><div class="os">Mediana empresa</div></div></div>
+      <div class="opt" onclick="pick('q1',this,'+200')"><div class="oi">🏭</div><div><div class="ol">+200</div><div class="os">Gran empresa</div></div></div>
     </div>
   </div>
 
-  <!-- PASO 4: VISIÓN -->
-  <div class="sec" id="sec4">
-    <div class="sec-kicker">Paso 4 de 4</div>
-    <div class="sec-title">¿Qué resultado necesitas ahora?</div>
-    <div class="sec-sub">Esto define qué agentes priorizar en tu implementación.</div>
-
-    <div class="opt-grid" id="metaGrid">
-      <div class="opt" onclick="pick('meta',this,'Reducir costos operativos')"><div class="opt-icon">💰</div><div><div class="opt-label">Reducir costos operativos</div><div class="opt-sub">Hacer más con el mismo equipo</div></div></div>
-      <div class="opt" onclick="pick('meta',this,'Crecer ventas')"><div class="opt-icon">📈</div><div><div class="opt-label">Crecer las ventas</div><div class="opt-sub">Más prospectos y cierres</div></div></div>
-      <div class="opt" onclick="pick('meta',this,'Mejorar servicio al cliente')"><div class="opt-icon">⭐</div><div><div class="opt-label">Mejorar el servicio</div><div class="opt-sub">Respuesta más rápida y calidad</div></div></div>
-      <div class="opt" onclick="pick('meta',this,'Escalar sin contratar más')"><div class="opt-icon">🚀</div><div><div class="opt-label">Escalar sin contratar</div><div class="opt-sub">Crecer con la misma estructura</div></div></div>
-      <div class="opt" onclick="pick('meta',this,'Todo lo anterior')"><div class="opt-icon">💎</div><div><div class="opt-label">Todo lo anterior</div><div class="opt-sub">Transformación digital completa</div></div></div>
-    </div>
-
-    <div class="sec-kicker" style="margin-top:4px">¿Han intentado automatizar antes?</div>
-    <div class="opt-grid two" id="expGrid">
-      <div class="opt" onclick="pick('exp',this,'No, es primera vez')"><div class="opt-icon">🌱</div><div><div class="opt-label">Primera vez</div><div class="opt-sub">Partimos desde cero</div></div></div>
-      <div class="opt" onclick="pick('exp',this,'Sí, con resultados limitados')"><div class="opt-icon">🔄</div><div><div class="opt-label">Sí, con resultados limitados</div><div class="opt-sub">Algo hicimos pero no funcionó del todo</div></div></div>
-      <div class="opt" onclick="pick('exp',this,'Sí, y funciona bien')"><div class="opt-icon">✅</div><div><div class="opt-label">Sí, funciona bien</div><div class="opt-sub">Queremos ir más lejos</div></div></div>
-    </div>
-
-    <div class="nav">
-      <button class="btn-back" onclick="goTo(3)">← Atrás</button>
-      <button class="btn-next" id="btn4" disabled onclick="generateDiagnosis()">Ver mi diagnóstico →</button>
+  <div class="qb">
+    <div class="qn">Pregunta 2 de 12</div>
+    <div class="qt">¿En qué industria opera tu negocio?</div>
+    <div class="qs">Selecciona la que mejor describe tu actividad principal.</div>
+    <div class="og" id="g2">
+      <div class="opt" onclick="pick('q2',this,'Comercio / Retail')"><div class="oi">🛍️</div><div class="ol">Comercio / Retail</div></div>
+      <div class="opt" onclick="pick('q2',this,'Servicios profesionales')"><div class="oi">💼</div><div class="ol">Servicios profesionales</div></div>
+      <div class="opt" onclick="pick('q2',this,'Restaurantes / Alimentos')"><div class="oi">🍽️</div><div class="ol">Restaurantes / Alimentos</div></div>
+      <div class="opt" onclick="pick('q2',this,'Salud / Clínicas')"><div class="oi">🏥</div><div class="ol">Salud / Clínicas</div></div>
+      <div class="opt" onclick="pick('q2',this,'Manufactura')"><div class="oi">⚙️</div><div class="ol">Manufactura</div></div>
+      <div class="opt" onclick="pick('q2',this,'Tecnología / SaaS')"><div class="oi">💻</div><div class="ol">Tecnología / SaaS</div></div>
+      <div class="opt" onclick="pick('q2',this,'Inmobiliaria / Construcción')"><div class="oi">🏗️</div><div class="ol">Inmobiliaria / Construcción</div></div>
+      <div class="opt" onclick="pick('q2',this,'Educación')"><div class="oi">🎓</div><div class="ol">Educación</div></div>
+      <div class="opt" onclick="pick('q2',this,'Finanzas / Contabilidad')"><div class="oi">📊</div><div class="ol">Finanzas / Contabilidad</div></div>
+      <div class="opt" onclick="pick('q2',this,'Otro')"><div class="oi">🔷</div><div class="ol">Otro sector</div></div>
     </div>
   </div>
 
-  <!-- PASO 5: DIAGNÓSTICO -->
-  <div class="sec" id="sec5">
-    <div class="dx-wrap" id="dxContent"></div>
+  <div class="qb">
+    <div class="qn">Pregunta 3 de 12</div>
+    <div class="qt">¿Cuántos años lleva operando tu empresa?</div>
+    <div class="qs">Define qué tan rápido puedes implementar agentes IA.</div>
+    <div class="og og2" id="g3">
+      <div class="opt" onclick="pick('q3',this,'Menos de 1 año')"><div class="oi">🌱</div><div><div class="ol">Menos de 1 año</div><div class="os">En arranque</div></div></div>
+      <div class="opt" onclick="pick('q3',this,'1-3 años')"><div class="oi">📈</div><div><div class="ol">1 – 3 años</div><div class="os">En crecimiento</div></div></div>
+      <div class="opt" onclick="pick('q3',this,'3-10 años')"><div class="oi">🏆</div><div><div class="ol">3 – 10 años</div><div class="os">Consolidada</div></div></div>
+      <div class="opt" onclick="pick('q3',this,'+10 años')"><div class="oi">🏛️</div><div><div class="ol">+10 años</div><div class="os">Establecida</div></div></div>
+    </div>
   </div>
 
+  <div class="nav"><span></span><button class="bnext" id="b1" disabled onclick="goTo(2)">Continuar →</button></div>
 </div>
 
+<!-- PASO 2 -->
+<div class="sec" id="s2">
+  <div class="qb" style="margin-top:28px">
+    <div class="qn">Pregunta 4 de 12</div>
+    <div class="qt">¿Cuántas horas semanales dedican a tareas repetitivas?</div>
+    <div class="qs">Reportes, captura de datos, responder las mismas preguntas, seguimientos manuales...</div>
+    <div class="og og2" id="g4">
+      <div class="opt" onclick="pick('q4',this,'Menos de 5h')"><div class="oi">✅</div><div><div class="ol">Menos de 5h</div><div class="os">Operación eficiente</div></div></div>
+      <div class="opt" onclick="pick('q4',this,'5-15h')"><div class="oi">⏱️</div><div><div class="ol">5 – 15 horas</div><div class="os">Margen de mejora</div></div></div>
+      <div class="opt" onclick="pick('q4',this,'15-30h')"><div class="oi">⏰</div><div><div class="ol">15 – 30 horas</div><div class="os">Alto potencial de ahorro</div></div></div>
+      <div class="opt" onclick="pick('q4',this,'+30h')"><div class="oi">🔥</div><div><div class="ol">Más de 30 horas</div><div class="os">Costo operativo crítico</div></div></div>
+    </div>
+  </div>
+
+  <div class="qb">
+    <div class="qn">Pregunta 5 de 12</div>
+    <div class="qt">¿Qué tan rápido responden a un prospecto nuevo?</div>
+    <div class="qs">El 78% de las ventas van al primero que responde. ¿Dónde están ustedes?</div>
+    <div class="og og2" id="g5">
+      <div class="opt" onclick="pick('q5',this,'En minutos')"><div class="oi">⚡</div><div><div class="ol">En minutos</div><div class="os">Respuesta inmediata</div></div></div>
+      <div class="opt" onclick="pick('q5',this,'En horas')"><div class="oi">🕐</div><div><div class="ol">En horas</div><div class="os">Pierden prospectos calientes</div></div></div>
+      <div class="opt" onclick="pick('q5',this,'Al día siguiente')"><div class="oi">📅</div><div><div class="ol">Al día siguiente</div><div class="os">Alto riesgo de perder ventas</div></div></div>
+      <div class="opt" onclick="pick('q5',this,'Cuando se puede')"><div class="oi">😰</div><div><div class="ol">Cuando se puede</div><div class="os">Señal de desbordamiento</div></div></div>
+    </div>
+  </div>
+
+  <div class="qb">
+    <div class="qn">Pregunta 6 de 12</div>
+    <div class="qt">¿Qué herramientas de gestión usan actualmente?</div>
+    <div class="qs">Selecciona todas las que usen de forma regular.</div>
+    <div class="og" id="g6">
+      <div class="opt" onclick="mick('q6',this,'CRM')"><div class="chk">✓</div><div class="ol">CRM (HubSpot, Pipedrive...)</div></div>
+      <div class="opt" onclick="mick('q6',this,'ERP / Contabilidad')"><div class="chk">✓</div><div class="ol">ERP / Contabilidad</div></div>
+      <div class="opt" onclick="mick('q6',this,'Excel / Sheets')"><div class="chk">✓</div><div class="ol">Excel / Google Sheets</div></div>
+      <div class="opt" onclick="mick('q6',this,'WhatsApp Business')"><div class="chk">✓</div><div class="ol">WhatsApp Business</div></div>
+      <div class="opt" onclick="mick('q6',this,'E-commerce')"><div class="chk">✓</div><div class="ol">E-commerce</div></div>
+      <div class="opt" onclick="mick('q6',this,'Ninguna')"><div class="chk">✓</div><div class="ol">Ninguna / Solo papel</div></div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="bback" onclick="goTo(1)">← Atrás</button>
+    <button class="bnext" id="b2" disabled onclick="goTo(3)">Continuar →</button>
+  </div>
+</div>
+
+<!-- PASO 3 -->
+<div class="sec" id="s3">
+  <div class="qb" style="margin-top:28px">
+    <div class="qn">Pregunta 7 de 12</div>
+    <div class="qt">¿Cuáles procesos siguen siendo manuales en tu empresa?</div>
+    <div class="qs">Selecciona todos los que apliquen. Aquí es donde los agentes generan más valor.</div>
+    <div class="og" id="g7">
+      <div class="opt" onclick="mick('q7',this,'Atención al cliente')"><div class="chk">✓</div><div><div class="ol">💬 Atención al cliente</div><div class="os">WhatsApp, correo, llamadas</div></div></div>
+      <div class="opt" onclick="mick('q7',this,'Seguimiento de ventas')"><div class="chk">✓</div><div><div class="ol">📈 Seguimiento de ventas</div><div class="os">CRM, cotizaciones, follow-up</div></div></div>
+      <div class="opt" onclick="mick('q7',this,'Reportes y análisis')"><div class="chk">✓</div><div><div class="ol">📊 Reportes y análisis</div><div class="os">KPIs, dashboards, Excel</div></div></div>
+      <div class="opt" onclick="mick('q7',this,'Facturación y cobros')"><div class="chk">✓</div><div><div class="ol">🧾 Facturación y cobros</div><div class="os">CFDI, conciliación bancaria</div></div></div>
+      <div class="opt" onclick="mick('q7',this,'Coordinación de equipo')"><div class="chk">✓</div><div><div class="ol">👥 Coordinación de equipo</div><div class="os">Tareas, agendas, avisos</div></div></div>
+      <div class="opt" onclick="mick('q7',this,'Captación de prospectos')"><div class="chk">✓</div><div><div class="ol">🎯 Captación de prospectos</div><div class="os">Leads, formularios, redes</div></div></div>
+      <div class="opt" onclick="mick('q7',this,'Logística y operaciones')"><div class="chk">✓</div><div><div class="ol">🚚 Logística y operaciones</div><div class="os">Inventario, pedidos, entregas</div></div></div>
+      <div class="opt" onclick="mick('q7',this,'Recursos humanos')"><div class="chk">✓</div><div><div class="ol">🤝 Recursos humanos</div><div class="os">Nómina, reclutamiento, IMSS</div></div></div>
+    </div>
+  </div>
+
+  <div class="qb">
+    <div class="qn">Pregunta 8 de 12</div>
+    <div class="qt">¿Cuál es el mayor dolor operativo de tu negocio hoy?</div>
+    <div class="qs">El que más limita tu crecimiento o te quita el sueño.</div>
+    <div class="og og2" id="g8">
+      <div class="opt" onclick="pick('q8',this,'No cierro suficientes ventas')"><div class="oi">😟</div><div class="ol">No cierro suficientes ventas</div></div>
+      <div class="opt" onclick="pick('q8',this,'Mala atención al cliente')"><div class="oi">📵</div><div class="ol">Mala atención al cliente</div></div>
+      <div class="opt" onclick="pick('q8',this,'Equipo desbordado')"><div class="oi">😵</div><div class="ol">Equipo desbordado</div></div>
+      <div class="opt" onclick="pick('q8',this,'No tengo visibilidad del negocio')"><div class="oi">🌫️</div><div class="ol">No tengo visibilidad del negocio</div></div>
+      <div class="opt" onclick="pick('q8',this,'Costos operativos altos')"><div class="oi">💸</div><div class="ol">Costos operativos altos</div></div>
+      <div class="opt" onclick="pick('q8',this,'No puedo escalar sin contratar')"><div class="oi">📉</div><div class="ol">No escalo sin contratar más</div></div>
+    </div>
+  </div>
+
+  <div class="qb">
+    <div class="qn">Pregunta 9 de 12</div>
+    <div class="qt">¿Cuánto estimas que pierdes mensualmente por ineficiencias?</div>
+    <div class="qs">Horas no facturadas, ventas perdidas, errores y retrabajo.</div>
+    <div class="og og2" id="g9">
+      <div class="opt" onclick="pick('q9',this,'Menos de $5,000')"><div class="oi">🟡</div><div><div class="ol">Menos de $5,000</div><div class="os">Pérdida baja</div></div></div>
+      <div class="opt" onclick="pick('q9',this,'$5,000 - $20,000')"><div class="oi">🟠</div><div><div class="ol">$5,000 – $20,000</div><div class="os">Pérdida moderada</div></div></div>
+      <div class="opt" onclick="pick('q9',this,'$20,000 - $50,000')"><div class="oi">🔴</div><div><div class="ol">$20,000 – $50,000</div><div class="os">Pérdida significativa</div></div></div>
+      <div class="opt" onclick="pick('q9',this,'+$50,000')"><div class="oi">🚨</div><div><div class="ol">Más de $50,000</div><div class="os">Urgente automatizar</div></div></div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="bback" onclick="goTo(2)">← Atrás</button>
+    <button class="bnext" id="b3" disabled onclick="goTo(4)">Continuar →</button>
+  </div>
+</div>
+
+<!-- PASO 4 -->
+<div class="sec" id="s4">
+  <div class="qb" style="margin-top:28px">
+    <div class="qn">Pregunta 10 de 12</div>
+    <div class="qt">¿Qué resultado prioriza tu negocio en los próximos 6 meses?</div>
+    <div class="qs">Tu objetivo define cuál agente necesitas primero.</div>
+    <div class="og og2" id="g10">
+      <div class="opt" onclick="pick('q10',this,'Aumentar ventas')"><div class="oi">📈</div><div><div class="ol">Aumentar ventas</div><div class="os">Más prospectos y cierres</div></div></div>
+      <div class="opt" onclick="pick('q10',this,'Reducir costos operativos')"><div class="oi">💰</div><div><div class="ol">Reducir costos</div><div class="os">Menos gasto operativo</div></div></div>
+      <div class="opt" onclick="pick('q10',this,'Mejorar atención al cliente')"><div class="oi">⭐</div><div><div class="ol">Mejorar atención</div><div class="os">Respuesta rápida 24/7</div></div></div>
+      <div class="opt" onclick="pick('q10',this,'Escalar sin contratar')"><div class="oi">🚀</div><div><div class="ol">Escalar sin contratar</div><div class="os">Más capacidad, mismo equipo</div></div></div>
+      <div class="opt" onclick="pick('q10',this,'Tener visibilidad del negocio')"><div class="oi">🎯</div><div><div class="ol">Tener visibilidad</div><div class="os">Datos en tiempo real</div></div></div>
+      <div class="opt" onclick="pick('q10',this,'Liberar tiempo del equipo')"><div class="oi">⏱️</div><div><div class="ol">Liberar tiempo</div><div class="os">Enfocarse en lo estratégico</div></div></div>
+    </div>
+  </div>
+
+  <div class="qb">
+    <div class="qn">Pregunta 11 de 12</div>
+    <div class="qt">¿Han intentado automatizar o usar tecnología antes?</div>
+    <div class="qs">Esto nos ayuda a definir el punto de partida correcto.</div>
+    <div class="og og2" id="g11">
+      <div class="opt" onclick="pick('q11',this,'No, primera vez')"><div class="oi">🌱</div><div><div class="ol">No, primera vez</div><div class="os">Partimos desde cero</div></div></div>
+      <div class="opt" onclick="pick('q11',this,'Sí, pero no funcionó')"><div class="oi">😞</div><div><div class="ol">Sí, pero no funcionó</div><div class="os">Mala experiencia previa</div></div></div>
+      <div class="opt" onclick="pick('q11',this,'Resultados parciales')"><div class="oi">🔄</div><div><div class="ol">Resultados parciales</div><div class="os">Algo funciona, falta más</div></div></div>
+      <div class="opt" onclick="pick('q11',this,'Sí, funciona bien')"><div class="oi">✅</div><div><div class="ol">Sí, funciona bien</div><div class="os">Queremos expandir</div></div></div>
+    </div>
+  </div>
+
+  <div class="qb">
+    <div class="qn">Pregunta 12 de 12</div>
+    <div class="qt">¿Cuál es tu rango de inversión mensual disponible?</div>
+    <div class="qs">Sin compromiso — define qué plan es viable para ti ahora mismo.</div>
+    <div class="og og2" id="g12">
+      <div class="opt" onclick="pick('q12',this,'Menos de $3,000/mes')"><div class="oi">🌱</div><div><div class="ol">Menos de $3,000</div><div class="os">Arranque básico</div></div></div>
+      <div class="opt" onclick="pick('q12',this,'$3,000 - $8,000/mes')"><div class="oi">📦</div><div><div class="ol">$3,000 – $8,000</div><div class="os">Plan estándar</div></div></div>
+      <div class="opt" onclick="pick('q12',this,'$8,000 - $15,000/mes')"><div class="oi">🚀</div><div><div class="ol">$8,000 – $15,000</div><div class="os">Implementación completa</div></div></div>
+      <div class="opt" onclick="pick('q12',this,'+$15,000/mes')"><div class="oi">🏆</div><div><div class="ol">Más de $15,000</div><div class="os">Solución enterprise</div></div></div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="bback" onclick="goTo(3)">← Atrás</button>
+    <button class="bnext" id="b4" disabled onclick="genDx()">Ver mi diagnóstico →</button>
+  </div>
+</div>
+
+<!-- PASO 5: RESULTADO -->
+<div class="sec" id="s5"><div id="dx"></div></div>
+
+</div>
 <script>
-const A={tamano:null,industria:null,horas:null,respuesta:null,procesos:[],meta:null,exp:null};
+const D={q1:'',q2:'',q3:'',q4:'',q5:'',q6:[],q7:[],q8:'',q9:'',q10:'',q11:'',q12:''};
+let nombre='',empresa='',email='',wa='';
 
-function updateSteps(cur){
-  for(let i=1;i<=5;i++){
-    const s=document.getElementById('ps'+i);
-    s.className='ps'+(i===cur?' active':i<cur?' done':'');
-  }
-  for(let i=1;i<=4;i++){
-    document.getElementById('pl'+i).className='ps-line'+(i<cur?' done':'');
-  }
-  document.getElementById('progFill').style.width=(cur/5*100)+'%';
+function pick(k,el,v){
+  el.parentNode.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
+  el.classList.add('sel'); D[k]=v; chk();
 }
-
+function mick(k,el,v){
+  el.classList.toggle('sel');
+  if(!Array.isArray(D[k]))D[k]=[];
+  const i=D[k].indexOf(v);
+  i>=0?D[k].splice(i,1):D[k].push(v);
+  chk();
+}
+function step(){for(let i=1;i<=5;i++)if(document.getElementById('s'+i)?.classList.contains('active'))return i;return 1;}
+function chk(){
+  const s=step();
+  const ok1=document.getElementById('fn').value.trim()&&document.getElementById('fe').value.trim()&&document.getElementById('fm').value.trim()&&D.q1&&D.q2&&D.q3;
+  if(s===1){const b=document.getElementById('b1');if(b)b.disabled=!ok1;}
+  if(s===2){const b=document.getElementById('b2');if(b)b.disabled=!(D.q4&&D.q5);}
+  if(s===3){const b=document.getElementById('b3');if(b)b.disabled=!(D.q8&&D.q9);}
+  if(s===4){const b=document.getElementById('b4');if(b)b.disabled=!(D.q10&&D.q11&&D.q12);}
+}
 function goTo(n){
+  if(n>=2){nombre=document.getElementById('fn').value.trim();empresa=document.getElementById('fe').value.trim();email=document.getElementById('fm').value.trim();wa=document.getElementById('fw').value.trim();}
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
-  document.getElementById('sec'+n).classList.add('active');
-  updateSteps(n);
+  document.getElementById('s'+n).classList.add('active');
+  document.getElementById('pf').style.width=[20,40,60,80,100][n-1]+'%';
+  for(let i=1;i<=5;i++){
+    const st=document.getElementById('st'+i),sl=document.getElementById('sl'+i);
+    st.className='st'+(i<n?' done':i===n?' active':'');
+    if(sl)sl.className='stline'+(i<n?' done':'');
+  }
   window.scrollTo({top:0,behavior:'smooth'});
 }
-
-function pick(key,el,val){
-  const parent=el.parentElement;
-  parent.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
-  el.classList.add('sel');
-  A[key]=val;
-  checkStep();
-}
-
-function toggleMulti(key,el,val){
-  el.classList.toggle('sel');
-  el.querySelector('.chk').textContent=el.classList.contains('sel')?'✓':'';
-  const idx=A[key].indexOf(val);
-  if(idx>=0) A[key].splice(idx,1); else A[key].push(val);
-  checkStep();
-}
-
-function checkStep(){
-  // Btn 1
-  const b1=A.tamano&&A.industria&&document.getElementById('empresa').value.trim()&&document.getElementById('nombre').value.trim()&&document.getElementById('email').value.trim();
-  document.getElementById('btn1').disabled=!b1;
-  // Btn 2
-  document.getElementById('btn2').disabled=!(A.horas&&A.respuesta);
-  // Btn 3
-  document.getElementById('btn3').disabled=!A.procesos.length;
-  // Btn 4
-  document.getElementById('btn4').disabled=!(A.meta&&A.exp);
-}
-
-// Check inputs on typing
-['empresa','nombre','email','whatsapp'].forEach(id=>{
-  document.getElementById(id).addEventListener('input',checkStep);
-});
-
-// ── DIAGNÓSTICO ────────────────────────────────────────────────────────────
-function calcScore(){
-  let s=0;
-  // Horas perdidas
-  const hMap={'Menos de 5h':5,'5-15h':20,'15-30h':40,'+30h':60};
-  s+=hMap[A.horas]||0;
-  // Velocidad respuesta
-  const rMap={'Minutos':0,'Horas':15,'Al día siguiente':25,'Cuando se puede':35};
-  s+=rMap[A.respuesta]||0;
-  // Procesos manuales
-  s+=A.procesos.length*3;
+function score(){
+  let s=25;
+  if(D.q4==='+30h')s+=18;else if(D.q4==='15-30h')s+=12;else if(D.q4==='5-15h')s+=6;
+  if(D.q5==='Cuando se puede')s+=15;else if(D.q5==='Al día siguiente')s+=10;else if(D.q5==='En horas')s+=5;
+  s+=Math.min(D.q7.length,5)*4;
+  if(D.q9==='+$50,000')s+=10;else if(D.q9==='$20,000 - $50,000')s+=7;else if(D.q9==='$5,000 - $20,000')s+=4;
+  if(D.q6.includes('Ninguna'))s+=5;
   return Math.min(s,100);
 }
-
-function getLevel(score){
-  if(score<25)return{level:'Digitalización Inicial',emoji:'🌱',desc:'Tu operación tiene bases sólidas. Hay oportunidades puntuales de mejora con IA.'};
-  if(score<55)return{level:'En Transición',emoji:'⚡',desc:'Tu negocio está listo para automatizar procesos clave y liberar capacidad operativa.'};
-  if(score<80)return{level:'Alto Potencial',emoji:'🚀',desc:'Existen múltiples procesos críticos donde los agentes IA generan ROI inmediato.'};
-  return{level:'Transformación Urgente',emoji:'🔥',desc:'Tu operación está dejando valor significativo sobre la mesa. La automatización es prioritaria.'};
+function level(sc){
+  if(sc>=80)return{l:'Alta Urgencia de Automatización',e:'🔴',d:'Múltiples puntos de fuga que los agentes pueden cerrar de inmediato. El costo de no actuar es muy alto.'};
+  if(sc>=60)return{l:'Potencial de Transformación Alto',e:'🟠',d:'Procesos con oportunidad clara. Un par de agentes bien configurados cambian tu operación en semanas.'};
+  if(sc>=40)return{l:'Listo para Escalar con IA',e:'🟡',d:'Operación sólida con espacio para multiplicar resultados sin grandes cambios estructurales.'};
+  return{l:'Explorador Digital',e:'🟢',d:'Base sólida. Implementar agentes IA ahora te pone por delante de la competencia.'};
 }
-
-function getAgents(){
-  const agents=[];
-  if(A.procesos.includes('Atención al cliente')||A.respuesta!=='Minutos')
-    agents.push({icon:'💬',name:'Agente de Atención 24/7',desc:'Responde prospectos y clientes en segundos, cualquier hora. Nunca pierde un lead caliente.',roi:'Reduce 80% del tiempo en atención'});
-  if(A.procesos.includes('Seguimiento de ventas')||A.procesos.includes('Captación de prospectos'))
-    agents.push({icon:'🎯',name:'Agente de Ventas Inteligente',desc:'Califica leads, envía cotizaciones, hace follow-up y agenda demos solo.',roi:'Incrementa conversión 2-3x'});
-  if(A.procesos.includes('Generación de reportes')||A.procesos.includes('Facturación y finanzas'))
-    agents.push({icon:'📊',name:'Agente de Operaciones',desc:'Genera reportes automáticos, concilia datos y mantiene tus finanzas al día sin intervención manual.',roi:'Ahorra 15-25h semanales'});
-  if(A.procesos.includes('Coordinación de equipo')||A.procesos.includes('Recursos humanos'))
-    agents.push({icon:'🤝',name:'Agente de Coordinación Interna',desc:'Gestiona tareas, avisos, agendas y seguimiento del equipo en tiempo real.',roi:'Elimina cuellos de botella internos'});
-  if(A.procesos.includes('Logística y operaciones'))
-    agents.push({icon:'🚚',name:'Agente de Logística',desc:'Monitorea inventario, coordina entregas y alerta anomalías antes de que sean problemas.',roi:'Reduce errores operativos 60%'});
-  // Siempre agregar uno base si no hay ninguno
-  if(!agents.length)
-    agents.push({icon:'⚡',name:'Agente Asistente de Negocios',desc:'Automatiza comunicaciones, recordatorios y tareas administrativas del día a día.',roi:'Libera 5-10h semanales'});
-  return agents.slice(0,3);
+function agents(){
+  const r=[];
+  if(D.q5==='Cuando se puede'||D.q5==='Al día siguiente'||D.q7.includes('Atención al cliente'))
+    r.push({i:'💬',n:'Agente de Atención 24/7',d:'Responde prospectos y clientes al instante por WhatsApp, cualquier hora, con respuestas inteligentes.',roi:'De horas a segundos en tiempo de respuesta'});
+  if(D.q7.includes('Seguimiento de ventas')||D.q7.includes('Captación de prospectos')||D.q10==='Aumentar ventas')
+    r.push({i:'🎯',n:'Agente de Ventas',d:'Califica prospectos, hace follow-up en el momento correcto y agenda demos automáticamente.',roi:'Incrementa conversión 2-3x'});
+  if(D.q7.includes('Reportes y análisis')||D.q7.includes('Facturación y cobros')||D.q10==='Tener visibilidad del negocio')
+    r.push({i:'📊',n:'Agente de Operaciones',d:'Genera reportes automáticos y mantiene tus KPIs al día sin trabajo manual.',roi:'Elimina 15-25h semanales de trabajo admin'});
+  if(D.q7.includes('Coordinación de equipo')||D.q10==='Liberar tiempo del equipo')
+    r.push({i:'🤝',n:'Agente de Productividad',d:'Gestiona tareas, recordatorios y comunicaciones para que tu equipo se enfoque en lo que importa.',roi:'Libera 30-40% del tiempo operativo'});
+  if(!r.length)r.push({i:'⚡',n:'Agente Asistente de Negocios',d:'Automatiza comunicaciones y tareas del día a día para liberar tiempo y reducir errores.',roi:'5-10h ahorradas desde el día 1'});
+  return r.slice(0,3);
 }
-
-function generateDiagnosis(){
-  const score=calcScore();
-  const {level,emoji,desc}=getLevel(score);
-  const agents=getAgents();
-  const empresa=document.getElementById('empresa').value.trim();
-  const nombre=document.getElementById('nombre').value.trim();
-  const email=document.getElementById('email').value.trim();
-  const wa=document.getElementById('whatsapp').value.trim();
-
-  const waMsg=encodeURIComponent(
-    'Hola Fernando, acabo de hacer el diagnóstico de IA para '+empresa+
-    '.\n\nResultado: '+level+' ('+score+'/100)\n'+
-    'Procesos a automatizar: '+A.procesos.join(', ')+
-    '\nObjetivo: '+A.meta+
-    '\n\nMe gustaría agendar la demo.');
-
-  const pctFill=score+'%';
-
-  document.getElementById('dxContent').innerHTML=`
-    <div class="dx-header">
-      <div class="dx-tag">Diagnóstico completo</div>
-      <div class="dx-company">${empresa}</div>
-      <div class="dx-level-label">Nivel de madurez digital</div>
-      <div class="dx-level">${emoji} ${level}</div>
-      <div class="dx-score-bar-bg"><div class="dx-score-fill" style="width:${pctFill}"></div></div>
-      <div style="font-size:11px;color:var(--gray);margin-top:6px">${score}/100 puntos de oportunidad</div>
+function genDx(){
+  nombre=document.getElementById('fn').value.trim();empresa=document.getElementById('fe').value.trim();
+  const sc=score(),{l,e,d}=level(sc),ag=agents();
+  const msg=encodeURIComponent('Hola Fernando, hice el diagnóstico de IA para '+empresa+'.\n\nResultado: '+l+' ('+sc+'/100)\nProcesos manuales: '+D.q7.join(', ')+'\nObjetivo: '+D.q10+'\nInversión: '+D.q12+'\n\nMe gustaría agendar la demo.');
+  document.getElementById('dx').innerHTML=`
+    <div class="dxh">
+      <div class="dxtag">Diagnóstico completado</div>
+      <div class="dxco">${empresa}</div>
+      <div class="dxll">Nivel de madurez digital</div>
+      <div class="dxlv">${e} ${l}</div>
+      <div class="dxbb"><div class="dxbf" style="width:${sc}%"></div></div>
+      <div class="dxst">${sc}/100 puntos de oportunidad detectados</div>
     </div>
-
-    <div class="dx-grid">
-      <div class="dx-card">
-        <div class="dx-card-title">Hallazgos clave</div>
-        <div class="dx-item"><div class="dx-item-dot ${A.horas==='+30h'||A.horas==='15-30h'?'warn':''}"></div>${A.horas==='Menos de 5h'?'Carga operativa controlada':'Carga operativa alta: '+A.horas+' en tareas repetitivas'}</div>
-        <div class="dx-item"><div class="dx-item-dot ${A.respuesta!=='Minutos'?'warn':''}"></div>Tiempo de respuesta: ${A.respuesta}</div>
-        <div class="dx-item"><div class="dx-item-dot warn"></div>${A.procesos.length} proceso${A.procesos.length!==1?'s':''} manual${A.procesos.length!==1?'es':''} identificado${A.procesos.length!==1?'s':''}</div>
+    <div class="dxgrid">
+      <div class="dxcard">
+        <div class="dxct">Hallazgos clave</div>
+        <div class="dxrow"><div class="dxdot ${D.q4==='+30h'||D.q4==='15-30h'?'w':''}"></div>${D.q4==='Menos de 5h'?'Carga operativa bajo control':D.q4+' en tareas repetitivas'}</div>
+        <div class="dxrow"><div class="dxdot ${D.q5!=='En minutos'?'w':''}"></div>Respuesta a clientes: ${D.q5}</div>
+        <div class="dxrow"><div class="dxdot ${D.q7.length>3?'r':D.q7.length>1?'w':''}"></div>${D.q7.length} proceso${D.q7.length!==1?'s':''} manual${D.q7.length!==1?'es':''}</div>
+        <div class="dxrow"><div class="dxdot w"></div>Pérdida estimada: ${D.q9}/mes</div>
       </div>
-      <div class="dx-card">
-        <div class="dx-card-title">Tu perfil</div>
-        <div class="dx-item"><div class="dx-item-dot"></div>Empresa: ${empresa}</div>
-        <div class="dx-item"><div class="dx-item-dot"></div>Industria: ${A.industria}</div>
-        <div class="dx-item"><div class="dx-item-dot"></div>Equipo: ${A.tamano} personas</div>
-        <div class="dx-item"><div class="dx-item-dot"></div>Objetivo: ${A.meta}</div>
+      <div class="dxcard">
+        <div class="dxct">Perfil del negocio</div>
+        <div class="dxrow"><div class="dxdot"></div>${empresa} · ${D.q2}</div>
+        <div class="dxrow"><div class="dxdot"></div>Equipo: ${D.q1} personas</div>
+        <div class="dxrow"><div class="dxdot"></div>${D.q3} en operación</div>
+        <div class="dxrow"><div class="dxdot"></div>Objetivo: ${D.q10}</div>
+        <div class="dxrow"><div class="dxdot"></div>Inversión: ${D.q12}</div>
       </div>
     </div>
-
-    <div class="dx-full">
-      <div class="dx-card-title">Agentes IA recomendados para ${empresa}</div>
-      <div style="font-size:12px;color:var(--gray);margin-bottom:12px">${desc}</div>
-      <div class="dx-agents">
-        ${agents.map(a=>`<div class="dx-agent">
-          <div class="dx-agent-icon">${a.icon}</div>
-          <div>
-            <div class="dx-agent-name">${a.name}</div>
-            <div class="dx-agent-desc">${a.desc}</div>
-            <span class="dx-agent-roi">${a.roi}</span>
-          </div>
-        </div>`).join('')}
-      </div>
+    <div class="dxab">
+      <div class="dxct">Agentes IA recomendados para ${empresa}</div>
+      <div style="font-size:12px;color:var(--gray);margin-bottom:4px">${d}</div>
+      <div class="dxal">${ag.map(a=>`<div class="dxa"><div class="dxai">${a.i}</div><div><div class="dxan">${a.n}</div><div class="dxad">${a.d}</div><span class="dxroi">${a.roi}</span></div></div>`).join('')}</div>
     </div>
-
-    <div class="dx-cta">
-      <a class="btn-demo" href="https://wa.me/524442522739?text=${waMsg}" target="_blank">
+    <div class="dxcta">
+      <a class="bwa" href="https://wa.me/524442522739?text=${msg}" target="_blank">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
         Agendar demo con Fernando
       </a>
-      <button class="btn-restart" onclick="location.reload()">🔄 Hacer nuevo diagnóstico</button>
+      <button class="breset" onclick="location.reload()">Hacer nuevo diagnóstico</button>
     </div>
-    <div class="dx-disclaimer">Tu información es confidencial y solo será usada para preparar tu demo personalizada.<br>Web3 Collective · web3collectiv.github.io</div>`;
-
+    <div class="dxnote">Información confidencial · Usada solo para preparar tu demo personalizada<br>AgentBase × Web3 Collective</div>`;
   goTo(5);
 }
+document.addEventListener('input',chk);
 </script>
 </body>
 </html>
