@@ -366,10 +366,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:#f1f5f9;min-heigh
     <div class="qt">¿Cuál es tu rango de inversión mensual disponible?</div>
     <div class="qs">Sin compromiso — define qué plan es viable para ti ahora mismo.</div>
     <div class="og og2" id="g12">
-      <div class="opt" onclick="pick('q12',this,'Menos de $3,000/mes')"><div class="oi">🌱</div><div><div class="ol">Menos de $3,000</div><div class="os">Arranque básico</div></div></div>
-      <div class="opt" onclick="pick('q12',this,'$3,000 - $8,000/mes')"><div class="oi">📦</div><div><div class="ol">$3,000 – $8,000</div><div class="os">Plan estándar</div></div></div>
-      <div class="opt" onclick="pick('q12',this,'$8,000 - $15,000/mes')"><div class="oi">🚀</div><div><div class="ol">$8,000 – $15,000</div><div class="os">Implementación completa</div></div></div>
-      <div class="opt" onclick="pick('q12',this,'+$15,000/mes')"><div class="oi">🏆</div><div><div class="ol">Más de $15,000</div><div class="os">Solución enterprise</div></div></div>
+      <div class="opt" onclick="pick('q12',this,'Menos de $9,990/mes')"><div class="oi">🔍</div><div><div class="ol">Menos de $9,990</div><div class="os">Explorando opciones</div></div></div>
+      <div class="opt" onclick="pick('q12',this,'$9,990/mes')"><div class="oi">🚀</div><div><div class="ol">$9,990 / mes</div><div class="os">Plan BASE AgentBase</div></div></div>
+      <div class="opt" onclick="pick('q12',this,'$14,990/mes')"><div class="oi">⚡</div><div><div class="ol">$14,990 / mes</div><div class="os">Plan PRO AgentBase</div></div></div>
+      <div class="opt" onclick="pick('q12',this,'$39,990/mes')"><div class="oi">🏆</div><div><div class="ol">$39,990 / mes</div><div class="os">Plan ENTERPRISE</div></div></div>
     </div>
   </div>
 
@@ -422,7 +422,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:#f1f5f9;min-heigh
     <div style="font-size:52px;margin-bottom:16px">🎉</div>
     <div style="font-size:22px;font-weight:900;margin-bottom:8px">¡Demo confirmada!</div>
     <div style="font-size:14px;color:var(--gray2);max-width:340px;margin:0 auto 24px;line-height:1.6" id="confMsg"></div>
-    <a class="bwa" href="https://agentbase.mx" target="_blank" style="max-width:320px;margin:0 auto 12px;display:flex">
+    <a class="bwa" href="https://agentbase.mx/?ref=2ABB63EC" target="_blank" style="max-width:320px;margin:0 auto 12px;display:flex">
       🔗 Conocer más sobre AgentBase
     </a>
     <button class="breset" onclick="location.reload()">Nuevo diagnóstico</button>
@@ -481,6 +481,12 @@ function score(){
   if(D.q6.includes('Ninguna'))s+=5;
   return Math.min(s,100);
 }
+function getPlan(){
+  if(D.q12==='$39,990/mes') return{plan:'ENTERPRISE',emoji:'🏆',desc:'Agentes ilimitados + integraciones custom + soporte dedicado 24/7'};
+  if(D.q12==='$14,990/mes') return{plan:'PRO',emoji:'⚡',desc:'Hasta 3 agentes + CRM + WhatsApp 24/7 + reportes automáticos'};
+  if(D.q12==='$9,990/mes') return{plan:'BASE',emoji:'🚀',desc:'1 agente dedicado + WhatsApp 24/7 + dashboard de métricas'};
+  return{plan:'EXPLORACIÓN',emoji:'🔍',desc:'Te orientamos sobre la mejor opción según tu presupuesto actual'};
+}
 function level(sc){
   if(sc>=80)return{l:'Alta Urgencia de Automatización',e:'🔴',d:'Múltiples puntos de fuga que los agentes pueden cerrar de inmediato. El costo de no actuar es muy alto.'};
   if(sc>=60)return{l:'Potencial de Transformación Alto',e:'🟠',d:'Procesos con oportunidad clara. Un par de agentes bien configurados cambian tu operación en semanas.'};
@@ -502,8 +508,8 @@ function agents(){
 }
 function genDx(){
   nombre=document.getElementById('fn').value.trim();empresa=document.getElementById('fe').value.trim();
-  const sc=score(),{l,e,d}=level(sc),ag=agents();
-  const msg=encodeURIComponent('Hola Fernando, hice el diagnóstico de IA para '+empresa+'.\n\nResultado: '+l+' ('+sc+'/100)\nProcesos manuales: '+D.q7.join(', ')+'\nObjetivo: '+D.q10+'\nInversión: '+D.q12+'\n\nMe gustaría agendar la demo.');
+  const sc=score(),{l,e,d}=level(sc),ag=agents(),pl=getPlan();
+  const msg=encodeURIComponent('Hola Fernando, hice el diagnóstico de IA para '+empresa+'.\n\nResultado: '+l+' ('+sc+'/100)\nPlan seleccionado: '+pl.plan+'\nProcesos manuales: '+D.q7.join(', ')+'\nObjetivo: '+D.q10+'\nInversión: '+D.q12+'\n\nMe gustaría agendar la demo.');
   document.getElementById('dx').innerHTML=`
     <div class="dxh">
       <div class="dxtag">Diagnóstico completado</div>
@@ -535,11 +541,22 @@ function genDx(){
       <div style="font-size:12px;color:var(--gray);margin-bottom:4px">${d}</div>
       <div class="dxal">${ag.map(a=>`<div class="dxa"><div class="dxai">${a.i}</div><div><div class="dxan">${a.n}</div><div class="dxad">${a.d}</div><span class="dxroi">${a.roi}</span></div></div>`).join('')}</div>
     </div>
+    <div class="dxab" style="background:var(--pdim);border-color:var(--pborder)">
+      <div class="dxct">Plan recomendado para ${empresa}</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:8px">
+        <div style="font-size:32px">${pl.emoji}</div>
+        <div>
+          <div style="font-size:18px;font-weight:900;color:var(--pl)">AgentBase ${pl.plan}</div>
+          <div style="font-size:12px;color:var(--gray2);margin-top:3px;line-height:1.5">${pl.desc}</div>
+          ${D.q12!=='Menos de $9,990/mes'?`<div style="margin-top:6px;font-size:13px;font-weight:800;color:var(--p)">${D.q12}</div>`:'<div style="margin-top:6px;font-size:12px;color:var(--gray)">Hablemos de opciones en la demo</div>'}
+        </div>
+      </div>
+    </div>
     <div class="dxcta">
       <button class="bnext" style="width:100%;justify-content:center;display:flex;gap:8px;align-items:center" onclick="goTo(6)">
         📅 Agendar mi demo
       </button>
-      <a class="breset" href="https://agentbase.mx" target="_blank" style="text-align:center;text-decoration:none;display:block;padding:12px">🔗 Conocer más sobre AgentBase →</a>
+      <a class="breset" href="https://agentbase.mx/?ref=2ABB63EC" target="_blank" style="text-align:center;text-decoration:none;display:block;padding:12px">🔗 Conocer más sobre AgentBase →</a>
       <button class="breset" onclick="location.reload()">Hacer nuevo diagnóstico</button>
     </div>
     <div class="dxnote">Información confidencial · Usada solo para preparar tu demo personalizada<br>AgentBase × Web3 Collective</div>`;
