@@ -646,7 +646,21 @@ function clearSlot(){
   document.getElementById('confirmWrap').style.display='none';
 }
 
-function generarPDF(){
+// ── Colores AgentBase ──────────────────────────────────────────────────────
+const C={
+  bg:       [7,8,20],        // #070814 fondo principal
+  bgCard:   [13,17,34],      // #0D1122 tarjetas oscuras
+  bgCard2:  [18,24,44],      // #12182C tarjetas alternas
+  bgHeader: [11,12,30],      // header
+  purple:   [139,92,246],    // #8B5CF6 púrpura principal
+  purpleDk: [109,40,217],    // #6D28D9 púrpura oscuro
+  purpleLt: [167,139,250],   // #A78BFA púrpura claro
+  white:    [241,245,249],   // texto principal
+  gray:     [148,163,184],   // texto secundario
+  gray2:    [203,213,225],   // texto terciario
+};
+
+function buildPDF(){
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
   const dx=window._dxData||{};
@@ -657,270 +671,206 @@ function generarPDF(){
   const sc=dx.sc||0;
   const l=dx.l||'';
   const e=dx.e||'';
-
-  const W=210,P=20;
+  const W=210,H=297,P=18;
   let y=0;
+  const MAXW=W-P*2; // 174mm ancho útil
+  const FOOTER_H=16;
+  const BODY_MAX=H-FOOTER_H-4;
 
-  // Fondo header
-  doc.setFillColor(11,12,24);
-  doc.rect(0,0,W,58,'F');
-
-  // Banda púrpura
-  doc.setFillColor(139,92,246);
-  doc.rect(0,0,W,2,'F');
-
-  // Logo / título
-  doc.setTextColor(167,139,250);
-  doc.setFontSize(9);doc.setFont('helvetica','bold');
-  doc.text('AGENTBASE × WEB3 COLLECTIVE',P,14);
-
-  doc.setTextColor(241,245,249);
-  doc.setFontSize(20);doc.setFont('helvetica','bold');
-  doc.text('Diagnóstico de IA',P,26);
-  doc.setFontSize(11);doc.setFont('helvetica','normal');
-  doc.setTextColor(148,163,184);
-  doc.text('Reporte personalizado de automatización con agentes IA',P,34);
-
-  // Datos del prospecto
-  doc.setFontSize(9);doc.setTextColor(167,139,250);
-  doc.text(em.toUpperCase(),P,44);
-  doc.setTextColor(203,213,225);
-  doc.text(n+' · '+m,P,50);
-  doc.text('Generado: '+new Date().toLocaleDateString('es-MX',{year:'numeric',month:'long',day:'numeric'}),P,56);
-
-  y=70;
-
-  // Score box
-  doc.setFillColor(13,17,34);
-  doc.roundedRect(P,y,W-P*2,28,4,4,'F');
-  doc.setFillColor(139,92,246);
-  doc.roundedRect(P,y,(W-P*2)*(sc/100),28,4,4,'F');
-  doc.setTextColor(255,255,255);
-  doc.setFontSize(14);doc.setFont('helvetica','bold');
-  doc.text(e+' '+l,P+4,y+10);
-  doc.setFontSize(10);doc.setFont('helvetica','normal');
-  doc.text('Puntaje de oportunidad de automatización: '+sc+'/100',P+4,y+20);
-  y+=36;
-
-  // Descripción del nivel
-  doc.setTextColor(148,163,184);
-  doc.setFontSize(9);doc.setFont('helvetica','italic');
-  const descLines=doc.splitTextToSize(dx.d||'',W-P*2);
-  doc.text(descLines,P,y);
-  y+=descLines.length*5+8;
-
-  // Sección: Hallazgos
-  doc.setFillColor(139,92,246);
-  doc.rect(P,y,3,5,'F');
-  doc.setTextColor(167,139,250);doc.setFontSize(11);doc.setFont('helvetica','bold');
-  doc.text('HALLAZGOS CLAVE',P+6,y+4);
-  y+=12;
-
-  const hallazgos=[
-    ['Tamaño del equipo',D.q1],
-    ['Industria',D.q2],
-    ['Años en operación',D.q3],
-    ['Horas en tareas repetitivas',D.q4+' por semana'],
-    ['Tiempo de respuesta a prospectos',D.q5],
-    ['Herramientas actuales',D.q6.join(', ')||'No especificadas'],
-    ['Mayor dolor operativo',D.q8],
-    ['Descripción del proceso',D.q8b],
-    ['Pérdida mensual estimada',D.q9],
-    ['Objetivo prioritario',D.q10],
-    ['Experiencia con automatización',D.q11],
-    ['Inversión disponible',D.q12+' mensual'],
-  ];
-
-  hallazgos.forEach(([k,v],i)=>{
-    if(i%2===0) doc.setFillColor(13,17,34);
-    else doc.setFillColor(18,23,40);
-    doc.rect(P,y,W-P*2,8,'F');
-    doc.setTextColor(148,163,184);doc.setFontSize(8);doc.setFont('helvetica','normal');
-    doc.text(k,P+3,y+5.5);
-    doc.setTextColor(203,213,225);doc.setFont('helvetica','bold');
-    doc.text(String(v||'N/A'),P+70,y+5.5);
-    y+=8;
-  });
-  y+=8;
-
-  // Sección: Procesos manuales
-  if(D.q7.length>0){
-    doc.setFillColor(139,92,246);
-    doc.rect(P,y,3,5,'F');
-    doc.setTextColor(167,139,250);doc.setFontSize(11);doc.setFont('helvetica','bold');
-    doc.text('PROCESOS MANUALES IDENTIFICADOS',P+6,y+4);
+  // Helpers
+  function bgPage(){doc.setFillColor(...C.bg);doc.rect(0,0,W,H,'F');}
+  function footer(){
+    doc.setFillColor(...C.bgHeader);doc.rect(0,H-FOOTER_H,W,FOOTER_H,'F');
+    doc.setFillColor(...C.purple);doc.rect(0,H-2,W,2,'F');
+    doc.setTextColor(...C.gray);doc.setFontSize(7.5);doc.setFont('helvetica','normal');
+    doc.text('AgentBase × Web3 Collective · agentbase.mx · Confidencial',P,H-5.5);
+    doc.setTextColor(...C.purpleLt);
+    doc.text(new Date().toLocaleDateString('es-MX'),W-P,H-5.5,{align:'right'});
+  }
+  function newPage(){doc.addPage();bgPage();footer();y=P;}
+  function checkPage(need){if(y+need>BODY_MAX)newPage();}
+  function sectionTitle(txt){
+    checkPage(14);
+    doc.setFillColor(...C.purple);doc.rect(P,y,3,6,'F');
+    doc.setTextColor(...C.purpleLt);doc.setFontSize(10);doc.setFont('helvetica','bold');
+    doc.text(txt,P+6,y+4.5);
     y+=12;
-    D.q7.forEach((p,i)=>{
-      doc.setFillColor(13,17,34);
-      doc.rect(P,y,W-P*2,8,'F');
-      doc.setFillColor(139,92,246);
-      doc.circle(P+6,y+4,1.5,'F');
-      doc.setTextColor(203,213,225);doc.setFontSize(9);doc.setFont('helvetica','normal');
-      doc.text(p,P+10,y+5.5);
-      y+=8;
-    });
-    y+=8;
+  }
+  function textBox(txt,opts={}){
+    const fs=opts.fs||8.5;
+    const color=opts.color||C.gray2;
+    const pad=opts.pad||4;
+    const maxW=opts.maxW||MAXW;
+    const bg=opts.bg||null;
+    doc.setFontSize(fs);doc.setFont('helvetica',opts.bold?'bold':'normal');
+    const lines=doc.splitTextToSize(String(txt||''),maxW-pad*2);
+    const boxH=lines.length*fs*0.4+pad*2;
+    checkPage(boxH+2);
+    if(bg){doc.setFillColor(...bg);doc.roundedRect(P,y,maxW,boxH,3,3,'F');}
+    doc.setTextColor(...color);
+    doc.text(lines,P+pad,y+pad+fs*0.35);
+    y+=boxH+2;
   }
 
-  // Nueva página para los agentes
-  if(y>220){doc.addPage();y=P;}
+  // ── PÁGINA 1: PORTADA ────────────────────────────────────────────────────
+  bgPage();
 
-  // Sección: Agentes recomendados
-  doc.setFillColor(139,92,246);
-  doc.rect(P,y,3,5,'F');
-  doc.setTextColor(167,139,250);doc.setFontSize(11);doc.setFont('helvetica','bold');
-  doc.text('AGENTES IA RECOMENDADOS PARA LA DEMO',P+6,y+4);
-  y+=12;
+  // Header band
+  doc.setFillColor(...C.bgHeader);doc.rect(0,0,W,70,'F');
+  doc.setFillColor(...C.purple);doc.rect(0,0,W,3,'F');
 
-  ag.forEach((a,i)=>{
-    doc.setFillColor(13,17,34);
-    doc.roundedRect(P,y,W-P*2,36,3,3,'F');
-    doc.setFillColor(139,92,246);
-    doc.roundedRect(P,y,4,36,2,2,'F');
+  // Logo text
+  doc.setTextColor(...C.purpleLt);doc.setFontSize(8);doc.setFont('helvetica','bold');
+  doc.text('AGENTBASE × WEB3 COLLECTIVE',P,15);
 
-    doc.setTextColor(167,139,250);doc.setFontSize(12);doc.setFont('helvetica','bold');
-    doc.text(a.n,P+8,y+9);
+  // Título
+  doc.setTextColor(...C.white);doc.setFontSize(22);doc.setFont('helvetica','bold');
+  doc.text('Diagnóstico de IA',P,28);
+  doc.setFontSize(10);doc.setFont('helvetica','normal');
+  doc.setTextColor(...C.gray);
+  doc.text('Reporte personalizado de automatización con agentes IA',P,36);
 
-    doc.setTextColor(148,163,184);doc.setFontSize(8);doc.setFont('helvetica','normal');
-    const descL=doc.splitTextToSize(a.d,W-P*2-10);
-    doc.text(descL,P+8,y+16);
+  // Prospecto
+  doc.setFillColor(139,92,246,0.15);
+  doc.setFillColor(20,14,46);doc.roundedRect(P,42,MAXW,22,3,3,'F');
+  doc.setFillColor(...C.purple);doc.roundedRect(P,42,3,22,2,2,'F');
+  doc.setTextColor(...C.purpleLt);doc.setFontSize(8);doc.setFont('helvetica','bold');
+  doc.text(em.toUpperCase(),P+6,49);
+  doc.setTextColor(...C.gray2);doc.setFontSize(9);doc.setFont('helvetica','normal');
+  doc.text(n+' · '+m,P+6,55);
+  doc.setTextColor(...C.gray);doc.setFontSize(7.5);
+  doc.text('Generado: '+new Date().toLocaleDateString('es-MX',{year:'numeric',month:'long',day:'numeric'}),P+6,61);
 
-    doc.setFillColor(124,58,237);
-    doc.roundedRect(P+8,y+26,W-P*2-20,7,2,2,'F');
-    doc.setTextColor(167,139,250);doc.setFontSize(8);doc.setFont('helvetica','bold');
-    doc.text('ROI: '+a.roi,P+10,y+31);
+  y=82;
 
-    y+=42;
-    if(y>250&&i<ag.length-1){doc.addPage();y=P;}
+  // Score bar
+  checkPage(36);
+  doc.setFillColor(...C.bgCard);doc.roundedRect(P,y,MAXW,30,4,4,'F');
+  const barW=Math.max(MAXW*(sc/100),4);
+  doc.setFillColor(...C.purple);doc.roundedRect(P,y,barW,30,4,4,'F');
+  // overlay text
+  doc.setTextColor(...C.white);doc.setFontSize(13);doc.setFont('helvetica','bold');
+  doc.text(e+' '+l,P+5,y+11);
+  doc.setFontSize(9);doc.setFont('helvetica','normal');
+  doc.text('Puntaje de automatización: '+sc+'/100',P+5,y+21);
+  y+=36;
+
+  // Descripción nivel
+  const descL=doc.splitTextToSize(dx.d||'',MAXW);
+  checkPage(descL.length*4.5+6);
+  doc.setTextColor(...C.gray);doc.setFontSize(8.5);doc.setFont('helvetica','italic');
+  doc.text(descL,P,y);
+  y+=descL.length*4.5+10;
+
+  // ── HALLAZGOS CLAVE ───────────────────────────────────────────────────────
+  sectionTitle('HALLAZGOS CLAVE');
+  const hallazgos=[
+    ['Empresa',em],['Tamaño del equipo',D.q1],['Industria',D.q2],
+    ['Años en operación',D.q3],['Horas repetitivas/sem',D.q4],
+    ['Respuesta a prospectos',D.q5],['Herramientas actuales',D.q6.join(', ')||'N/A'],
+    ['Mayor dolor operativo',D.q8],['Pérdida mensual estimada',D.q9],
+    ['Objetivo prioritario',D.q10],['Experiencia con IA',D.q11],
+    ['Inversión disponible',D.q12],
+  ];
+  hallazgos.forEach(([k,v],i)=>{
+    checkPage(10);
+    doc.setFillColor(...(i%2===0?C.bgCard:C.bgCard2));
+    doc.rect(P,y,MAXW,9,'F');
+    doc.setTextColor(...C.gray);doc.setFontSize(7.5);doc.setFont('helvetica','normal');
+    doc.text(k,P+3,y+6);
+    const vStr=doc.splitTextToSize(String(v||'N/A'),MAXW-72)[0];// 1 línea truncada
+    doc.setTextColor(...C.gray2);doc.setFont('helvetica','bold');
+    doc.text(vStr,P+68,y+6);
+    y+=9;
   });
+  y+=6;
 
+  // ── DESCRIPCIÓN DEL PROCESO ───────────────────────────────────────────────
+  if(D.q8b&&D.q8b.trim()){
+    sectionTitle('DESCRIPCIÓN DEL PROCESO A AUTOMATIZAR');
+    const proc=doc.splitTextToSize(D.q8b.trim(),MAXW-8);
+    const procH=proc.length*4.5+10;
+    checkPage(procH+4);
+    doc.setFillColor(...C.bgCard);doc.roundedRect(P,y,MAXW,procH,3,3,'F');
+    doc.setFillColor(...C.purple);doc.roundedRect(P,y,3,procH,2,2,'F');
+    doc.setTextColor(...C.gray2);doc.setFontSize(8.5);doc.setFont('helvetica','normal');
+    doc.text(proc,P+6,y+6);
+    y+=procH+8;
+  }
+
+  // ── PROCESOS MANUALES ────────────────────────────────────────────────────
+  if(D.q7.length>0){
+    sectionTitle('PROCESOS MANUALES IDENTIFICADOS');
+    D.q7.forEach((p,i)=>{
+      checkPage(10);
+      doc.setFillColor(...(i%2===0?C.bgCard:C.bgCard2));
+      doc.rect(P,y,MAXW,9,'F');
+      doc.setFillColor(...C.purple);doc.circle(P+6,y+4.5,1.5,'F');
+      doc.setTextColor(...C.gray2);doc.setFontSize(8.5);doc.setFont('helvetica','normal');
+      doc.text(p,P+11,y+6);
+      y+=9;
+    });
+    y+=6;
+  }
+
+  // ── AGENTES RECOMENDADOS ─────────────────────────────────────────────────
+  checkPage(20);
+  sectionTitle('AGENTES IA RECOMENDADOS PARA TU DEMO');
+  ag.forEach((a,i)=>{
+    const descLines=doc.splitTextToSize(a.d,MAXW-14);
+    const cardH=descLines.length*4.2+22;
+    checkPage(cardH+4);
+    doc.setFillColor(...C.bgCard);doc.roundedRect(P,y,MAXW,cardH,3,3,'F');
+    doc.setFillColor(...C.purple);doc.roundedRect(P,y,4,cardH,2,2,'F');
+    doc.setTextColor(...C.purpleLt);doc.setFontSize(10);doc.setFont('helvetica','bold');
+    doc.text(a.n,P+8,y+8);
+    doc.setTextColor(...C.gray);doc.setFontSize(8);doc.setFont('helvetica','normal');
+    doc.text(descLines,P+8,y+15);
+    const roiY=y+cardH-7;
+    doc.setFillColor(...C.purpleDk);doc.roundedRect(P+8,roiY-4,MAXW-16,6,2,2,'F');
+    doc.setTextColor(...C.purpleLt);doc.setFontSize(7.5);doc.setFont('helvetica','bold');
+    doc.text('ROI ESTIMADO: '+a.roi,P+11,roiY);
+    y+=cardH+5;
+  });
   y+=4;
 
-  // Sección: Agenda para la demo
-  if(y>220){doc.addPage();y=P;}
-  doc.setFillColor(139,92,246);
-  doc.rect(P,y,3,5,'F');
-  doc.setTextColor(167,139,250);doc.setFontSize(11);doc.setFont('helvetica','bold');
-  doc.text('AGENDA PROPUESTA PARA LA DEMO',P+6,y+4);
-  y+=12;
-
+  // ── AGENDA DEMO ──────────────────────────────────────────────────────────
+  checkPage(20);
+  sectionTitle('AGENDA PROPUESTA PARA LA DEMO');
   const agenda=[
     ['0–10 min','Revisión del diagnóstico y prioridades del negocio'],
-    ['10–25 min','Demostración del Agente #1: '+( ag[0]?.n||'Agente Principal')],
-    ['25–35 min','Caso de uso específico para '+em+' · '+D.q2],
-    ['35–45 min','Demo de integraciones: '+D.q6.slice(0,2).join(', ')||'WhatsApp + CRM'],
+    ['10–25 min','Demo del Agente Principal: '+(ag[0]?.n||'Agente IA')],
+    ['25–35 min','Caso de uso: '+em+' · '+D.q2],
+    ['35–45 min','Integraciones: '+(D.q6.slice(0,2).join(', ')||'WhatsApp + CRM')],
     ['45–55 min','ROI estimado y plan de implementación'],
-    ['55–60 min','Preguntas y próximos pasos'],
+    ['55–60 min','Preguntas, dudas y próximos pasos'],
   ];
-
   agenda.forEach(([t,desc],i)=>{
-    doc.setFillColor(i%2===0?13:18,i%2===0?17:23,i%2===0?34:40);
-    doc.rect(P,y,W-P*2,9,'F');
-    doc.setTextColor(167,139,250);doc.setFontSize(8);doc.setFont('helvetica','bold');
+    checkPage(10);
+    doc.setFillColor(...(i%2===0?C.bgCard:C.bgCard2));
+    doc.rect(P,y,MAXW,9,'F');
+    doc.setTextColor(...C.purpleLt);doc.setFontSize(7.5);doc.setFont('helvetica','bold');
     doc.text(t,P+3,y+6);
-    doc.setTextColor(203,213,225);doc.setFont('helvetica','normal');
-    doc.text(desc,P+35,y+6);
+    const desc2=doc.splitTextToSize(desc,MAXW-38)[0];
+    doc.setTextColor(...C.gray2);doc.setFont('helvetica','normal');doc.setFontSize(8);
+    doc.text(desc2,P+36,y+6);
     y+=9;
   });
 
-  y+=10;
+  footer();
+  return doc;
+}
 
-  // Footer
-  doc.setFillColor(11,12,24);
-  doc.rect(0,280,W,17,'F');
-  doc.setFillColor(139,92,246);
-  doc.rect(0,295,W,2,'F');
-  doc.setTextColor(148,163,184);doc.setFontSize(8);doc.setFont('helvetica','normal');
-  doc.text('AgentBase × Web3 Collective · agentbase.mx · Confidencial',P,291);
-  doc.setTextColor(167,139,250);
-  doc.text('Diagnóstico generado el '+new Date().toLocaleDateString('es-MX'),W-P,291,{align:'right'});
-
-  return doc; // Sin .save() — solo se usa desde generarPDFBlob()
+function generarPDF(){
+  const doc=buildPDF();
+  const n=nombre||document.getElementById('fn').value.trim();
+  const em=empresa||document.getElementById('fe').value.trim();
+  doc.save('Diagnostico-IA-'+(em||n).replace(/\s+/g,'-')+'.pdf');
+  return doc;
 }
 
 function generarPDFBlob(){
-  // Igual que generarPDF pero sin .save() — solo retorna el doc
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-  const dx=window._dxData||{};
-  const n=nombre||document.getElementById('fn').value.trim();
-  const em=empresa||document.getElementById('fe').value.trim();
-  const m=email||document.getElementById('fm').value.trim();
-  const ag=dx.ag||[];
-  const sc=dx.sc||0;
-  const l=dx.l||'';
-  const e=dx.e||'';
-  const W=210,P=20;let y=0;
-  doc.setFillColor(11,12,24);doc.rect(0,0,W,58,'F');
-  doc.setFillColor(139,92,246);doc.rect(0,0,W,2,'F');
-  doc.setTextColor(167,139,250);doc.setFontSize(9);doc.setFont('helvetica','bold');
-  doc.text('AGENTBASE × WEB3 COLLECTIVE',P,14);
-  doc.setTextColor(241,245,249);doc.setFontSize(20);doc.setFont('helvetica','bold');
-  doc.text('Diagnóstico de IA',P,26);
-  doc.setFontSize(11);doc.setFont('helvetica','normal');doc.setTextColor(148,163,184);
-  doc.text('Reporte personalizado de automatización con agentes IA',P,34);
-  doc.setFontSize(9);doc.setTextColor(167,139,250);doc.text(em.toUpperCase(),P,44);
-  doc.setTextColor(203,213,225);doc.text(n+' · '+m,P,50);
-  doc.text('Generado: '+new Date().toLocaleDateString('es-MX',{year:'numeric',month:'long',day:'numeric'}),P,56);
-  y=70;
-  doc.setFillColor(13,17,34);doc.roundedRect(P,y,W-P*2,28,4,4,'F');
-  doc.setFillColor(139,92,246);doc.roundedRect(P,y,(W-P*2)*(sc/100),28,4,4,'F');
-  doc.setTextColor(255,255,255);doc.setFontSize(14);doc.setFont('helvetica','bold');
-  doc.text(e+' '+l,P+4,y+10);
-  doc.setFontSize(10);doc.setFont('helvetica','normal');
-  doc.text('Puntaje de oportunidad: '+sc+'/100',P+4,y+20);y+=36;
-  doc.setTextColor(148,163,184);doc.setFontSize(9);doc.setFont('helvetica','italic');
-  const descL=doc.splitTextToSize(dx.d||'',W-P*2);doc.text(descL,P,y);y+=descL.length*5+8;
-  doc.setFillColor(139,92,246);doc.rect(P,y,3,5,'F');
-  doc.setTextColor(167,139,250);doc.setFontSize(11);doc.setFont('helvetica','bold');
-  doc.text('HALLAZGOS CLAVE',P+6,y+4);y+=12;
-  [[' Tamaño del equipo',D.q1],['Industria',D.q2],['Años en operación',D.q3],['Horas repetitivas',D.q4+'/sem'],['Respuesta a prospectos',D.q5],['Herramientas',D.q6.join(', ')||'N/A'],['Mayor dolor',D.q8],['Descripción del proceso',D.q8b||'N/A'],['Pérdida mensual',D.q9],['Objetivo',D.q10],['Experiencia previa',D.q11],['Inversión disponible',D.q12]].forEach(([k,v],i)=>{
-    doc.setFillColor(i%2===0?13:18,i%2===0?17:23,i%2===0?34:40);
-    doc.rect(P,y,W-P*2,8,'F');
-    doc.setTextColor(148,163,184);doc.setFontSize(8);doc.setFont('helvetica','normal');doc.text(k,P+3,y+5.5);
-    doc.setTextColor(203,213,225);doc.setFont('helvetica','bold');doc.text(String(v||'N/A'),P+70,y+5.5);y+=8;
-  });y+=8;
-  if(D.q7.length>0){
-    doc.setFillColor(139,92,246);doc.rect(P,y,3,5,'F');
-    doc.setTextColor(167,139,250);doc.setFontSize(11);doc.setFont('helvetica','bold');
-    doc.text('PROCESOS MANUALES IDENTIFICADOS',P+6,y+4);y+=12;
-    D.q7.forEach(p=>{
-      doc.setFillColor(13,17,34);doc.rect(P,y,W-P*2,8,'F');
-      doc.setFillColor(139,92,246);doc.circle(P+6,y+4,1.5,'F');
-      doc.setTextColor(203,213,225);doc.setFontSize(9);doc.setFont('helvetica','normal');
-      doc.text(p,P+10,y+5.5);y+=8;
-    });y+=8;
-  }
-  if(y>220){doc.addPage();y=P;}
-  doc.setFillColor(139,92,246);doc.rect(P,y,3,5,'F');
-  doc.setTextColor(167,139,250);doc.setFontSize(11);doc.setFont('helvetica','bold');
-  doc.text('AGENTES IA RECOMENDADOS PARA LA DEMO',P+6,y+4);y+=12;
-  ag.forEach((a,i)=>{
-    doc.setFillColor(13,17,34);doc.roundedRect(P,y,W-P*2,36,3,3,'F');
-    doc.setFillColor(139,92,246);doc.roundedRect(P,y,4,36,2,2,'F');
-    doc.setTextColor(167,139,250);doc.setFontSize(12);doc.setFont('helvetica','bold');doc.text(a.n,P+8,y+9);
-    doc.setTextColor(148,163,184);doc.setFontSize(8);doc.setFont('helvetica','normal');
-    const dl=doc.splitTextToSize(a.d,W-P*2-10);doc.text(dl,P+8,y+16);
-    doc.setFillColor(124,58,237);doc.roundedRect(P+8,y+26,W-P*2-20,7,2,2,'F');
-    doc.setTextColor(167,139,250);doc.setFontSize(8);doc.setFont('helvetica','bold');doc.text('ROI: '+a.roi,P+10,y+31);
-    y+=42;if(y>250&&i<ag.length-1){doc.addPage();y=P;}
-  });y+=4;
-  if(y>220){doc.addPage();y=P;}
-  doc.setFillColor(139,92,246);doc.rect(P,y,3,5,'F');
-  doc.setTextColor(167,139,250);doc.setFontSize(11);doc.setFont('helvetica','bold');
-  doc.text('AGENDA PROPUESTA PARA LA DEMO',P+6,y+4);y+=12;
-  [['0–10 min','Revisión del diagnóstico y prioridades del negocio'],['10–25 min','Demo del Agente #1: '+(ag[0]?.n||'Agente Principal')],['25–35 min','Caso de uso específico para '+em+' · '+D.q2],['35–45 min','Integraciones: '+D.q6.slice(0,2).join(', ')],['45–55 min','ROI estimado y plan de implementación'],['55–60 min','Preguntas y próximos pasos']].forEach(([t,desc],i)=>{
-    doc.setFillColor(i%2===0?13:18,i%2===0?17:23,i%2===0?34:40);
-    doc.rect(P,y,W-P*2,9,'F');
-    doc.setTextColor(167,139,250);doc.setFontSize(8);doc.setFont('helvetica','bold');doc.text(t,P+3,y+6);
-    doc.setTextColor(203,213,225);doc.setFont('helvetica','normal');doc.text(desc,P+35,y+6);y+=9;
-  });
-  doc.setFillColor(11,12,24);doc.rect(0,280,W,17,'F');
-  doc.setFillColor(139,92,246);doc.rect(0,295,W,2,'F');
-  doc.setTextColor(148,163,184);doc.setFontSize(8);doc.setFont('helvetica','normal');
-  doc.text('AgentBase × Web3 Collective · agentbase.mx · Confidencial',P,291);
-  doc.setTextColor(167,139,250);doc.text('Diagnóstico: '+new Date().toLocaleDateString('es-MX'),W-P,291,{align:'right'});
-  return doc;
+  return buildPDF();
 }
 
 async function confirmBooking(){
