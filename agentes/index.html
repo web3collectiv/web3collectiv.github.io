@@ -6,11 +6,7 @@
 <title>Diagnóstico IA — AgentBase × Web3 Collective</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script>
-  // Inicializa EmailJS con tu Public Key
-  (function(){if(typeof emailjs!=='undefined')emailjs.init({publicKey:'TU_PUBLIC_KEY'});})();
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{
   --p:#8B5CF6;--pd:#7C3AED;--pl:#A78BFA;
@@ -436,10 +432,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:#f1f5f9;min-heigh
 </div>
 <script>
 // ── CONFIG (reemplazar con tus credenciales) ──────────────────────────
-const EMAILJS_SERVICE  = 'TU_SERVICE_ID';   // emailjs.com → Email Services
-const EMAILJS_TEMPLATE = 'TU_TEMPLATE_ID';  // emailjs.com → Email Templates
-const EMAILJS_KEY      = 'TU_PUBLIC_KEY';   // emailjs.com → Account → Public Key
-const GAS_URL          = 'https://script.google.com/macros/s/AKfycbwZT60BLNLKcDhghc8kEJn5BGO_LylDq6p4bXOK0BsGgs2hLXwrvbv0pMnH-7hBk6xO/exec';
+const FERNANDO_WA = '524442522739';
 // ─────────────────────────────────────────────────────────────────────
 const D={q1:'',q2:'',q3:'',q4:'',q5:'',q6:[],q7:[],q8:'',q9:'',q10:'',q11:'',q12:''};
 let nombre='',empresa='',email='',wa='';
@@ -551,7 +544,7 @@ function genDx(){
     </div>
     <div class="dxnote">Información confidencial · Usada solo para preparar tu demo personalizada<br>AgentBase × Web3 Collective</div>`;
   goTo(5);
-  sendDiagnosisEmail(sc,l,ag);
+  window._dxData={sc,l,e,d,ag};
 }
 document.addEventListener('input',chk);
 
@@ -629,61 +622,243 @@ function clearSlot(){
   document.getElementById('confirmWrap').style.display='none';
 }
 
-async function confirmBooking(){
-  const btn=document.getElementById('bConfirm');
-  btn.disabled=true; btn.textContent='Confirmando...';
+function generarPDF(){
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const dx=window._dxData||{};
   const n=nombre||document.getElementById('fn').value.trim();
-  const e=empresa||document.getElementById('fe').value.trim();
+  const em=empresa||document.getElementById('fe').value.trim();
+  const m=email||document.getElementById('fm').value.trim();
+  const ag=dx.ag||[];
+  const sc=dx.sc||0;
+  const l=dx.l||'';
+  const e=dx.e||'';
+
+  const W=210,P=20;
+  let y=0;
+
+  // Fondo header
+  doc.setFillColor(11,12,24);
+  doc.rect(0,0,W,58,'F');
+
+  // Banda púrpura
+  doc.setFillColor(139,92,246);
+  doc.rect(0,0,W,2,'F');
+
+  // Logo / título
+  doc.setTextColor(167,139,250);
+  doc.setFontSize(9);doc.setFont('helvetica','bold');
+  doc.text('AGENTBASE × WEB3 COLLECTIVE',P,14);
+
+  doc.setTextColor(241,245,249);
+  doc.setFontSize(20);doc.setFont('helvetica','bold');
+  doc.text('Diagnóstico de IA',P,26);
+  doc.setFontSize(11);doc.setFont('helvetica','normal');
+  doc.setTextColor(148,163,184);
+  doc.text('Reporte personalizado de automatización con agentes IA',P,34);
+
+  // Datos del prospecto
+  doc.setFontSize(9);doc.setTextColor(167,139,250);
+  doc.text(em.toUpperCase(),P,44);
+  doc.setTextColor(203,213,225);
+  doc.text(n+' · '+m,P,50);
+  doc.text('Generado: '+new Date().toLocaleDateString('es-MX',{year:'numeric',month:'long',day:'numeric'}),P,56);
+
+  y=70;
+
+  // Score box
+  doc.setFillColor(13,17,34);
+  doc.roundedRect(P,y,W-P*2,28,4,4,'F');
+  doc.setFillColor(139,92,246);
+  doc.roundedRect(P,y,(W-P*2)*(sc/100),28,4,4,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(14);doc.setFont('helvetica','bold');
+  doc.text(e+' '+l,P+4,y+10);
+  doc.setFontSize(10);doc.setFont('helvetica','normal');
+  doc.text('Puntaje de oportunidad de automatización: '+sc+'/100',P+4,y+20);
+  y+=36;
+
+  // Descripción del nivel
+  doc.setTextColor(148,163,184);
+  doc.setFontSize(9);doc.setFont('helvetica','italic');
+  const descLines=doc.splitTextToSize(dx.d||'',W-P*2);
+  doc.text(descLines,P,y);
+  y+=descLines.length*5+8;
+
+  // Sección: Hallazgos
+  doc.setFillColor(139,92,246);
+  doc.rect(P,y,3,5,'F');
+  doc.setTextColor(167,139,250);doc.setFontSize(11);doc.setFont('helvetica','bold');
+  doc.text('HALLAZGOS CLAVE',P+6,y+4);
+  y+=12;
+
+  const hallazgos=[
+    ['Tamaño del equipo',D.q1],
+    ['Industria',D.q2],
+    ['Años en operación',D.q3],
+    ['Horas en tareas repetitivas',D.q4+' por semana'],
+    ['Tiempo de respuesta a prospectos',D.q5],
+    ['Herramientas actuales',D.q6.join(', ')||'No especificadas'],
+    ['Mayor dolor operativo',D.q8],
+    ['Pérdida mensual estimada',D.q9],
+    ['Objetivo prioritario',D.q10],
+    ['Experiencia con automatización',D.q11],
+    ['Inversión disponible',D.q12+' mensual'],
+  ];
+
+  hallazgos.forEach(([k,v],i)=>{
+    if(i%2===0) doc.setFillColor(13,17,34);
+    else doc.setFillColor(18,23,40);
+    doc.rect(P,y,W-P*2,8,'F');
+    doc.setTextColor(148,163,184);doc.setFontSize(8);doc.setFont('helvetica','normal');
+    doc.text(k,P+3,y+5.5);
+    doc.setTextColor(203,213,225);doc.setFont('helvetica','bold');
+    doc.text(String(v||'N/A'),P+70,y+5.5);
+    y+=8;
+  });
+  y+=8;
+
+  // Sección: Procesos manuales
+  if(D.q7.length>0){
+    doc.setFillColor(139,92,246);
+    doc.rect(P,y,3,5,'F');
+    doc.setTextColor(167,139,250);doc.setFontSize(11);doc.setFont('helvetica','bold');
+    doc.text('PROCESOS MANUALES IDENTIFICADOS',P+6,y+4);
+    y+=12;
+    D.q7.forEach((p,i)=>{
+      doc.setFillColor(13,17,34);
+      doc.rect(P,y,W-P*2,8,'F');
+      doc.setFillColor(139,92,246);
+      doc.circle(P+6,y+4,1.5,'F');
+      doc.setTextColor(203,213,225);doc.setFontSize(9);doc.setFont('helvetica','normal');
+      doc.text(p,P+10,y+5.5);
+      y+=8;
+    });
+    y+=8;
+  }
+
+  // Nueva página para los agentes
+  if(y>220){doc.addPage();y=P;}
+
+  // Sección: Agentes recomendados
+  doc.setFillColor(139,92,246);
+  doc.rect(P,y,3,5,'F');
+  doc.setTextColor(167,139,250);doc.setFontSize(11);doc.setFont('helvetica','bold');
+  doc.text('AGENTES IA RECOMENDADOS PARA LA DEMO',P+6,y+4);
+  y+=12;
+
+  ag.forEach((a,i)=>{
+    doc.setFillColor(13,17,34);
+    doc.roundedRect(P,y,W-P*2,36,3,3,'F');
+    doc.setFillColor(139,92,246);
+    doc.roundedRect(P,y,4,36,2,2,'F');
+
+    doc.setTextColor(167,139,250);doc.setFontSize(12);doc.setFont('helvetica','bold');
+    doc.text(a.n,P+8,y+9);
+
+    doc.setTextColor(148,163,184);doc.setFontSize(8);doc.setFont('helvetica','normal');
+    const descL=doc.splitTextToSize(a.d,W-P*2-10);
+    doc.text(descL,P+8,y+16);
+
+    doc.setFillColor(124,58,237);
+    doc.roundedRect(P+8,y+26,W-P*2-20,7,2,2,'F');
+    doc.setTextColor(167,139,250);doc.setFontSize(8);doc.setFont('helvetica','bold');
+    doc.text('ROI: '+a.roi,P+10,y+31);
+
+    y+=42;
+    if(y>250&&i<ag.length-1){doc.addPage();y=P;}
+  });
+
+  y+=4;
+
+  // Sección: Agenda para la demo
+  if(y>220){doc.addPage();y=P;}
+  doc.setFillColor(139,92,246);
+  doc.rect(P,y,3,5,'F');
+  doc.setTextColor(167,139,250);doc.setFontSize(11);doc.setFont('helvetica','bold');
+  doc.text('AGENDA PROPUESTA PARA LA DEMO',P+6,y+4);
+  y+=12;
+
+  const agenda=[
+    ['0–10 min','Revisión del diagnóstico y prioridades del negocio'],
+    ['10–25 min','Demostración del Agente #1: '+( ag[0]?.n||'Agente Principal')],
+    ['25–35 min','Caso de uso específico para '+em+' · '+D.q2],
+    ['35–45 min','Demo de integraciones: '+D.q6.slice(0,2).join(', ')||'WhatsApp + CRM'],
+    ['45–55 min','ROI estimado y plan de implementación'],
+    ['55–60 min','Preguntas y próximos pasos'],
+  ];
+
+  agenda.forEach(([t,desc],i)=>{
+    doc.setFillColor(i%2===0?13:18,i%2===0?17:23,i%2===0?34:40);
+    doc.rect(P,y,W-P*2,9,'F');
+    doc.setTextColor(167,139,250);doc.setFontSize(8);doc.setFont('helvetica','bold');
+    doc.text(t,P+3,y+6);
+    doc.setTextColor(203,213,225);doc.setFont('helvetica','normal');
+    doc.text(desc,P+35,y+6);
+    y+=9;
+  });
+
+  y+=10;
+
+  // Footer
+  doc.setFillColor(11,12,24);
+  doc.rect(0,280,W,17,'F');
+  doc.setFillColor(139,92,246);
+  doc.rect(0,295,W,2,'F');
+  doc.setTextColor(148,163,184);doc.setFontSize(8);doc.setFont('helvetica','normal');
+  doc.text('AgentBase × Web3 Collective · agentbase.mx · Confidencial',P,291);
+  doc.setTextColor(167,139,250);
+  doc.text('Diagnóstico generado el '+new Date().toLocaleDateString('es-MX'),W-P,291,{align:'right'});
+
+  doc.save('Diagnostico-IA-'+em.replace(/\s+/g,'-')+'.pdf');
+  return doc;
+}
+
+function confirmBooking(){
+  const btn=document.getElementById('bConfirm');
+  btn.disabled=true; btn.textContent='Generando PDF...';
+
+  const n=nombre||document.getElementById('fn').value.trim();
+  const em=empresa||document.getElementById('fe').value.trim();
   const m=email||document.getElementById('fm').value.trim();
   const w=wa||document.getElementById('fw').value.trim();
   const dateStr=DOWS[selDay.getDay()]+', '+selDay.getDate()+' de '+MONTHS[selDay.getMonth()]+' '+selDay.getFullYear();
-  const isoDate=selDay.toISOString().split('T')[0];
 
-  // 1. Google Apps Script → Google Calendar + email confirmación
-  try{
-    await fetch(GAS_URL,{method:'POST',mode:'no-cors',body:JSON.stringify({
-      nombre:n,empresa:e,email:m,whatsapp:w,
-      fecha:dateStr,hora:selSlot,isoDate,
-      diagnostico:window._dxSummary||''
-    })});
-  }catch(err){console.warn('GAS error:',err);}
+  // Generar y descargar PDF
+  try{ generarPDF(); }catch(err){ console.warn('PDF error:',err); }
 
-  // 2. EmailJS → correo al prospecto
-  try{
-    if(typeof emailjs!=='undefined'&&EMAILJS_SERVICE!=='TU_SERVICE_ID'){
-      await emailjs.send(EMAILJS_SERVICE,EMAILJS_TEMPLATE,{
-        to_name:n, to_email:m, empresa:e,
-        fecha:dateStr, hora:selSlot,
-        diagnostico:window._dxSummary||''
-      });
-    }
-  }catch(err){console.warn('EmailJS error:',err);}
+  // Mensaje WhatsApp con diagnóstico completo
+  const dx=window._dxData||{};
+  const waMsg=encodeURIComponent(
+    '📋 *Diagnóstico de Automatización IA*\n\n'+
+    '👤 *Prospecto:* '+n+'\n'+
+    '🏢 *Empresa:* '+em+'\n'+
+    '📧 *Correo:* '+m+'\n'+
+    (w?'📱 *WhatsApp:* '+w+'\n':'')+
+    '\n📅 *Demo solicitada:*\n'+
+    '   Fecha: '+dateStr+'\n'+
+    '   Hora: '+selSlot+' hrs\n\n'+
+    '📊 *Resultado del diagnóstico:*\n'+
+    '   Nivel: '+(dx.e||'')+' '+(dx.l||'')+'\n'+
+    '   Puntaje: '+(dx.sc||0)+'/100\n\n'+
+    '⚙️ *Procesos manuales identificados:*\n'+
+    (D.q7.length?D.q7.map(p=>'   • '+p).join('\n'):'   No especificados')+'\n\n'+
+    '🎯 *Agentes IA recomendados:*\n'+
+    (dx.ag||[]).map(a=>'   • '+a.n+': '+a.roi).join('\n')+'\n\n'+
+    '💰 *Pérdida mensual estimada:* '+D.q9+'\n'+
+    '🚀 *Objetivo:* '+D.q10+'\n'+
+    '💼 *Inversión disponible:* '+D.q12+'\n\n'+
+    '_Adjunto el PDF con el diagnóstico completo y agenda de la demo._'
+  );
 
-  // 3. WhatsApp a Fernando (notificación inmediata)
-  const ferMsg=encodeURIComponent('🔔 Nueva demo agendada:\n\n👤 '+n+'\n🏢 '+e+'\n📧 '+m+(w?'\n📱 '+w:'')+'\n📅 '+dateStr+'\n🕐 '+selSlot+' hrs\n\nDiagnóstico: '+(window._dxSummary||''));
-  window.open('https://wa.me/524442522739?text='+ferMsg,'_blank');
-
-  document.getElementById('confMsg').innerHTML='Te enviamos la confirmación a <strong>'+m+'</strong>.<br><br>📅 '+dateStr+' · '+selSlot+' hrs<br><br>Fernando se pondrá en contacto contigo antes de la demo.';
-  goTo(7);
-}
-
-function sendDiagnosisEmail(sc,l,ag){
-  const n=nombre||document.getElementById('fn').value.trim();
-  const m=email||document.getElementById('fm').value.trim();
-  const e=empresa||document.getElementById('fe').value.trim();
-  window._dxSummary='Nivel: '+l+' ('+sc+'/100) | Procesos: '+D.q7.join(', ')+' | Objetivo: '+D.q10+' | Inversión: '+D.q12;
-  // EmailJS
-  try{
-    if(typeof emailjs!=='undefined'&&EMAILJS_SERVICE!=='TU_SERVICE_ID'){
-      emailjs.send(EMAILJS_SERVICE,EMAILJS_TEMPLATE,{
-        to_name:n,to_email:m,empresa:e,
-        nivel:l,score:sc,
-        procesos:D.q7.join(', ')||'N/A',
-        objetivo:D.q10,inversion:D.q12,
-        agentes:ag.map(a=>a.n).join(', ')
-      });
-    }
-  }catch(err){console.warn('EmailJS:',err);}
+  setTimeout(()=>{
+    window.open('https://wa.me/'+FERNANDO_WA+'?text='+waMsg,'_blank');
+    document.getElementById('confMsg').innerHTML=
+      '✅ El PDF se descargó en tu dispositivo.<br><br>'+
+      '📅 <strong>'+dateStr+'</strong> · <strong>'+selSlot+' hrs</strong><br><br>'+
+      'Se abrió WhatsApp para enviarle los detalles a Fernando. Adjunta el PDF que se descargó.';
+    goTo(7);
+  },800);
 }
 </script>
 </body>
