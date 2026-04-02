@@ -810,8 +810,7 @@ function generarPDF(){
   doc.setTextColor(167,139,250);
   doc.text('Diagnóstico generado el '+new Date().toLocaleDateString('es-MX'),W-P,291,{align:'right'});
 
-  doc.save('Diagnostico-IA-'+em.replace(/\s+/g,'-')+'.pdf');
-  return doc;
+  return doc; // Sin .save() — solo se usa desde generarPDFBlob()
 }
 
 function generarPDFBlob(){
