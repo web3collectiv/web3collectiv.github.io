@@ -814,7 +814,92 @@ function generarPDF(){
   return doc;
 }
 
-function confirmBooking(){
+function generarPDFBlob(){
+  // Igual que generarPDF pero sin .save() — solo retorna el doc
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const dx=window._dxData||{};
+  const n=nombre||document.getElementById('fn').value.trim();
+  const em=empresa||document.getElementById('fe').value.trim();
+  const m=email||document.getElementById('fm').value.trim();
+  const ag=dx.ag||[];
+  const sc=dx.sc||0;
+  const l=dx.l||'';
+  const e=dx.e||'';
+  const W=210,P=20;let y=0;
+  doc.setFillColor(11,12,24);doc.rect(0,0,W,58,'F');
+  doc.setFillColor(139,92,246);doc.rect(0,0,W,2,'F');
+  doc.setTextColor(167,139,250);doc.setFontSize(9);doc.setFont('helvetica','bold');
+  doc.text('AGENTBASE × WEB3 COLLECTIVE',P,14);
+  doc.setTextColor(241,245,249);doc.setFontSize(20);doc.setFont('helvetica','bold');
+  doc.text('Diagnóstico de IA',P,26);
+  doc.setFontSize(11);doc.setFont('helvetica','normal');doc.setTextColor(148,163,184);
+  doc.text('Reporte personalizado de automatización con agentes IA',P,34);
+  doc.setFontSize(9);doc.setTextColor(167,139,250);doc.text(em.toUpperCase(),P,44);
+  doc.setTextColor(203,213,225);doc.text(n+' · '+m,P,50);
+  doc.text('Generado: '+new Date().toLocaleDateString('es-MX',{year:'numeric',month:'long',day:'numeric'}),P,56);
+  y=70;
+  doc.setFillColor(13,17,34);doc.roundedRect(P,y,W-P*2,28,4,4,'F');
+  doc.setFillColor(139,92,246);doc.roundedRect(P,y,(W-P*2)*(sc/100),28,4,4,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(14);doc.setFont('helvetica','bold');
+  doc.text(e+' '+l,P+4,y+10);
+  doc.setFontSize(10);doc.setFont('helvetica','normal');
+  doc.text('Puntaje de oportunidad: '+sc+'/100',P+4,y+20);y+=36;
+  doc.setTextColor(148,163,184);doc.setFontSize(9);doc.setFont('helvetica','italic');
+  const descL=doc.splitTextToSize(dx.d||'',W-P*2);doc.text(descL,P,y);y+=descL.length*5+8;
+  doc.setFillColor(139,92,246);doc.rect(P,y,3,5,'F');
+  doc.setTextColor(167,139,250);doc.setFontSize(11);doc.setFont('helvetica','bold');
+  doc.text('HALLAZGOS CLAVE',P+6,y+4);y+=12;
+  [[' Tamaño del equipo',D.q1],['Industria',D.q2],['Años en operación',D.q3],['Horas repetitivas',D.q4+'/sem'],['Respuesta a prospectos',D.q5],['Herramientas',D.q6.join(', ')||'N/A'],['Mayor dolor',D.q8],['Pérdida mensual',D.q9],['Objetivo',D.q10],['Experiencia previa',D.q11],['Inversión disponible',D.q12]].forEach(([k,v],i)=>{
+    doc.setFillColor(i%2===0?13:18,i%2===0?17:23,i%2===0?34:40);
+    doc.rect(P,y,W-P*2,8,'F');
+    doc.setTextColor(148,163,184);doc.setFontSize(8);doc.setFont('helvetica','normal');doc.text(k,P+3,y+5.5);
+    doc.setTextColor(203,213,225);doc.setFont('helvetica','bold');doc.text(String(v||'N/A'),P+70,y+5.5);y+=8;
+  });y+=8;
+  if(D.q7.length>0){
+    doc.setFillColor(139,92,246);doc.rect(P,y,3,5,'F');
+    doc.setTextColor(167,139,250);doc.setFontSize(11);doc.setFont('helvetica','bold');
+    doc.text('PROCESOS MANUALES IDENTIFICADOS',P+6,y+4);y+=12;
+    D.q7.forEach(p=>{
+      doc.setFillColor(13,17,34);doc.rect(P,y,W-P*2,8,'F');
+      doc.setFillColor(139,92,246);doc.circle(P+6,y+4,1.5,'F');
+      doc.setTextColor(203,213,225);doc.setFontSize(9);doc.setFont('helvetica','normal');
+      doc.text(p,P+10,y+5.5);y+=8;
+    });y+=8;
+  }
+  if(y>220){doc.addPage();y=P;}
+  doc.setFillColor(139,92,246);doc.rect(P,y,3,5,'F');
+  doc.setTextColor(167,139,250);doc.setFontSize(11);doc.setFont('helvetica','bold');
+  doc.text('AGENTES IA RECOMENDADOS PARA LA DEMO',P+6,y+4);y+=12;
+  ag.forEach((a,i)=>{
+    doc.setFillColor(13,17,34);doc.roundedRect(P,y,W-P*2,36,3,3,'F');
+    doc.setFillColor(139,92,246);doc.roundedRect(P,y,4,36,2,2,'F');
+    doc.setTextColor(167,139,250);doc.setFontSize(12);doc.setFont('helvetica','bold');doc.text(a.n,P+8,y+9);
+    doc.setTextColor(148,163,184);doc.setFontSize(8);doc.setFont('helvetica','normal');
+    const dl=doc.splitTextToSize(a.d,W-P*2-10);doc.text(dl,P+8,y+16);
+    doc.setFillColor(124,58,237);doc.roundedRect(P+8,y+26,W-P*2-20,7,2,2,'F');
+    doc.setTextColor(167,139,250);doc.setFontSize(8);doc.setFont('helvetica','bold');doc.text('ROI: '+a.roi,P+10,y+31);
+    y+=42;if(y>250&&i<ag.length-1){doc.addPage();y=P;}
+  });y+=4;
+  if(y>220){doc.addPage();y=P;}
+  doc.setFillColor(139,92,246);doc.rect(P,y,3,5,'F');
+  doc.setTextColor(167,139,250);doc.setFontSize(11);doc.setFont('helvetica','bold');
+  doc.text('AGENDA PROPUESTA PARA LA DEMO',P+6,y+4);y+=12;
+  [['0–10 min','Revisión del diagnóstico y prioridades del negocio'],['10–25 min','Demo del Agente #1: '+(ag[0]?.n||'Agente Principal')],['25–35 min','Caso de uso específico para '+em+' · '+D.q2],['35–45 min','Integraciones: '+D.q6.slice(0,2).join(', ')],['45–55 min','ROI estimado y plan de implementación'],['55–60 min','Preguntas y próximos pasos']].forEach(([t,desc],i)=>{
+    doc.setFillColor(i%2===0?13:18,i%2===0?17:23,i%2===0?34:40);
+    doc.rect(P,y,W-P*2,9,'F');
+    doc.setTextColor(167,139,250);doc.setFontSize(8);doc.setFont('helvetica','bold');doc.text(t,P+3,y+6);
+    doc.setTextColor(203,213,225);doc.setFont('helvetica','normal');doc.text(desc,P+35,y+6);y+=9;
+  });
+  doc.setFillColor(11,12,24);doc.rect(0,280,W,17,'F');
+  doc.setFillColor(139,92,246);doc.rect(0,295,W,2,'F');
+  doc.setTextColor(148,163,184);doc.setFontSize(8);doc.setFont('helvetica','normal');
+  doc.text('AgentBase × Web3 Collective · agentbase.mx · Confidencial',P,291);
+  doc.setTextColor(167,139,250);doc.text('Diagnóstico: '+new Date().toLocaleDateString('es-MX'),W-P,291,{align:'right'});
+  return doc;
+}
+
+async function confirmBooking(){
   const btn=document.getElementById('bConfirm');
   btn.disabled=true; btn.textContent='Generando PDF...';
 
@@ -851,14 +936,49 @@ function confirmBooking(){
     '_Adjunto el PDF con el diagnóstico completo y agenda de la demo._'
   );
 
+  const em2=empresa||document.getElementById('fe').value.trim();
+  const waText=
+    '📋 *Diagnóstico de Automatización IA*\n\n'+
+    '👤 *Prospecto:* '+n+'\n'+
+    '🏢 *Empresa:* '+em2+'\n'+
+    '📧 *Correo:* '+m+'\n'+
+    (w?'📱 *WhatsApp:* '+w+'\n':'')+
+    '\n📅 *Demo solicitada:*\n'+
+    '   Fecha: '+dateStr+'\n'+
+    '   Hora: '+selSlot+' hrs\n\n'+
+    '📊 *Resultado:* '+(dx.e||'')+' '+(dx.l||'')+' — '+(dx.sc||0)+'/100\n\n'+
+    '⚙️ *Procesos manuales:*\n'+
+    (D.q7.length?D.q7.map(p=>'   • '+p).join('\n'):'   No especificados')+'\n\n'+
+    '🎯 *Agentes recomendados:*\n'+
+    (dx.ag||[]).map(a=>'   • '+a.n).join('\n')+'\n\n'+
+    '💰 Pérdida estimada: '+D.q9+' | Inversión: '+D.q12+'\n\n'+
+    '¡Te adjunto mi Diagnóstico Inicial en PDF!';
+
+  // Intentar compartir con PDF adjunto (móvil)
+  try{
+    const {jsPDF}=window.jspdf;
+    // Generar PDF como blob sin descargar
+    const doc2=generarPDFBlob();
+    const pdfBlob=doc2.output('blob');
+    const pdfFile=new File([pdfBlob],'Diagnostico-IA-'+em2.replace(/\s+/g,'-')+'.pdf',{type:'application/pdf'});
+    if(navigator.canShare&&navigator.canShare({files:[pdfFile]})){
+      await navigator.share({files:[pdfFile],text:waText});
+      document.getElementById('confMsg').innerHTML='✅ Diagnóstico compartido.<br><br>📅 <strong>'+dateStr+'</strong> · <strong>'+selSlot+' hrs</strong>';
+      goTo(7);
+      return;
+    }
+  }catch(err){console.warn('Share API:',err);}
+
+  // Fallback desktop: WhatsApp link + descarga PDF
+  generarPDF();
   setTimeout(()=>{
-    window.open('https://wa.me/'+FERNANDO_WA+'?text='+waMsg,'_blank');
+    window.open('https://wa.me/'+FERNANDO_WA+'?text='+encodeURIComponent(waText),'_blank');
     document.getElementById('confMsg').innerHTML=
       '✅ El PDF se descargó en tu dispositivo.<br><br>'+
       '📅 <strong>'+dateStr+'</strong> · <strong>'+selSlot+' hrs</strong><br><br>'+
-      'Se abrió WhatsApp para enviarle los detalles a Fernando. Adjunta el PDF que se descargó.';
+      'Adjunta el PDF descargado en WhatsApp.';
     goTo(7);
-  },800);
+  },600);
 }
 </script>
 </body>
