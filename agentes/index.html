@@ -954,31 +954,39 @@ async function confirmBooking(){
     '💰 Pérdida estimada: '+D.q9+' | Inversión: '+D.q12+'\n\n'+
     '¡Te adjunto mi Diagnóstico Inicial en PDF!';
 
-  // Intentar compartir con PDF adjunto (móvil)
+  // Generar PDF como blob (sin descargar)
+  let pdfFile=null;
   try{
-    const {jsPDF}=window.jspdf;
-    // Generar PDF como blob sin descargar
     const doc2=generarPDFBlob();
     const pdfBlob=doc2.output('blob');
-    const pdfFile=new File([pdfBlob],'Diagnostico-IA-'+em2.replace(/\s+/g,'-')+'.pdf',{type:'application/pdf'});
-    if(navigator.canShare&&navigator.canShare({files:[pdfFile]})){
-      await navigator.share({files:[pdfFile],text:waText});
-      document.getElementById('confMsg').innerHTML='✅ Diagnóstico compartido.<br><br>📅 <strong>'+dateStr+'</strong> · <strong>'+selSlot+' hrs</strong>';
+    pdfFile=new File([pdfBlob],'Diagnostico-IA-'+em2.replace(/\s+/g,'-')+'.pdf',{type:'application/pdf'});
+  }catch(err){console.warn('PDF blob:',err);}
+
+  // Compartir con PDF adjunto via Web Share API
+  if(pdfFile&&navigator.canShare&&navigator.canShare({files:[pdfFile]})){
+    try{
+      await navigator.share({
+        files:[pdfFile],
+        text:waText,
+        title:'Diagnóstico IA — '+em2
+      });
+      document.getElementById('confMsg').innerHTML=
+        '✅ Listo. Selecciona WhatsApp en el menú y busca el chat de Fernando.<br><br>'+
+        '📅 <strong>'+dateStr+'</strong> · <strong>'+selSlot+' hrs</strong>';
       goTo(7);
       return;
+    }catch(err){
+      if(err.name!=='AbortError') console.warn('Share:',err);
+      else{btn.disabled=false;btn.textContent='Confirmar demo →';return;}
     }
-  }catch(err){console.warn('Share API:',err);}
+  }
 
-  // Fallback desktop: WhatsApp link + descarga PDF
-  generarPDF();
-  setTimeout(()=>{
-    window.open('https://wa.me/'+FERNANDO_WA+'?text='+encodeURIComponent(waText),'_blank');
-    document.getElementById('confMsg').innerHTML=
-      '✅ El PDF se descargó en tu dispositivo.<br><br>'+
-      '📅 <strong>'+dateStr+'</strong> · <strong>'+selSlot+' hrs</strong><br><br>'+
-      'Adjunta el PDF descargado en WhatsApp.';
-    goTo(7);
-  },600);
+  // Desktop: solo texto a WhatsApp (sin PDF adjunto — limitación de WhatsApp Web)
+  window.open('https://wa.me/'+FERNANDO_WA+'?text='+encodeURIComponent(waText),'_blank');
+  document.getElementById('confMsg').innerHTML=
+    '✅ <strong>'+dateStr+'</strong> · <strong>'+selSlot+' hrs</strong><br><br>'+
+    'Usa el diagnóstico desde tu celular para enviar el PDF directo a WhatsApp.';
+  goTo(7);
 }
 </script>
 </body>
